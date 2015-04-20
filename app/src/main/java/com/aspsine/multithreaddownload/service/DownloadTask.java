@@ -94,9 +94,10 @@ public class DownloadTask {
                     while ((len = inputStream.read(buffer)) != -1) {
                         raf.write(buffer, 0, len);
                         mFinished += len;
-                        if (System.currentTimeMillis() - time > 500) {
+                        int progress = Integer.valueOf(mFinished * 100/ mFileInfo.getLength());
+                        if (System.currentTimeMillis() - time > 500 || progress == 100) {
                             time = System.currentTimeMillis();
-                            mIntent.putExtra(DownloadService.EXTRA_FINISHED, Integer.valueOf(mFinished * 100/ mFileInfo.getLength()));
+                            mIntent.putExtra(DownloadService.EXTRA_FINISHED, progress);
                             mContext.sendBroadcast(mIntent);
                         }
                         if (mIsPause) {
@@ -124,5 +125,9 @@ public class DownloadTask {
                 }
             }
         }
+    }
+
+    public static interface ProgressCallBacks{
+        public void onProgress(int progress);
     }
 }
