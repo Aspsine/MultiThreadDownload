@@ -50,7 +50,7 @@ public class ThreadInfoDao extends AbstarctDao<ThreadInfo> {
 
     public void update(String url, int threadId, int finished) {
         SQLiteDatabase db = mHelper.getWritableDatabase();
-        db.execSQL("update from "
+        db.execSQL("update "
                         + TABLE_NAME
                         + " set finished = ?"
                         + " where url = ? and id = ? ",

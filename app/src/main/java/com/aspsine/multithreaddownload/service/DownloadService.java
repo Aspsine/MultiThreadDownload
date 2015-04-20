@@ -36,9 +36,20 @@ public class DownloadService extends Service {
     public static final String ACTION_UPDATE = "action_update";
 
     private static final int MSG_INIT = 0;
-    private static final int MSG_PAUSE = 1;
 
-    private static DownloadHandler handler;
+    private DownloadTask mDownloadTask;
+
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == MSG_INIT) {
+                FileInfo fileInfo = (FileInfo) msg.obj;
+                mDownloadTask = new DownloadTask(DownloadService.this, fileInfo);
+                mDownloadTask.download();
+            }
+        }
+    };
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -47,57 +58,30 @@ public class DownloadService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent == null){
+            Log.i(TAG, "intent = null");
+            return super.onStartCommand(intent, flags, startId);
+        }
         String action = intent.getAction();
         if (ACTION_START.equals(action)) {
+            Log.i(TAG, "start " + this.hashCode());
             FileInfo fileInfo = (FileInfo) intent.getSerializableExtra(EXTRA_FILE_INFO);
             download(fileInfo);
         } else if (ACTION_PAUSE.equals(action)) {
+            Log.i(TAG, "pause " + this.hashCode());
             FileInfo fileInfo = (FileInfo) intent.getSerializableExtra(EXTRA_FILE_INFO);
-            pause(fileInfo);
+            if(mDownloadTask != null){
+                mDownloadTask.pause();
+            }
         }
         return super.onStartCommand(intent, flags, startId);
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        if (handler == null) {
-            handler = new DownloadHandler(this);
-        }
-    }
-
     public void download(FileInfo fileInfo) {
         new InitThread(this, fileInfo).start();
-        Log.i(TAG, "start " + this.hashCode());
     }
 
-    public void pause(FileInfo fileInfo) {
-        handler.obtainMessage(MSG_PAUSE).sendToTarget();
-        Log.i(TAG, "stop " + this.hashCode());
-    }
-
-    private static class DownloadHandler extends Handler {
-        private Context mContext;
-        private DownloadThread mDownloadThread;
-
-        public DownloadHandler(Context context) {
-            this.mContext = context;
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            if (msg.what == MSG_INIT) {
-                FileInfo fileInfo = (FileInfo) msg.obj;
-                mDownloadThread = new DownloadThread(mContext, fileInfo);
-                mDownloadThread.start();
-            } else if (msg.what == MSG_PAUSE) {
-                mDownloadThread.setPause(true);
-            }
-        }
-    }
-
-    private static class InitThread extends Thread {
+    class InitThread extends Thread {
         FileInfo mFileInfo;
         Context mContext;
 
@@ -113,7 +97,7 @@ public class DownloadService extends Service {
             try {
                 URL url = new URL(mFileInfo.getUrl());
                 httpConn = (HttpURLConnection) url.openConnection();
-                httpConn.setConnectTimeout(10*1000);
+                httpConn.setConnectTimeout(10 * 1000);
                 int length = -1;
                 if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     length = httpConn.getContentLength();
@@ -136,95 +120,6 @@ public class DownloadService extends Service {
                 httpConn.disconnect();
                 try {
                     if (raf != null) raf.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    private static class DownloadThread extends Thread {
-        private Context mContext;
-        private ThreadInfo mThreadInfo;
-        private FileInfo mFileInfo;
-        private ThreadInfoRepository mRepository;
-
-        private Intent mIntent;
-
-        private int mFinished = 0;
-        private boolean mIsPause = false;
-
-        public DownloadThread(Context context, FileInfo fileInfo) {
-            this.mContext = context;
-            this.mFileInfo = fileInfo;
-
-            mRepository = new ThreadInfoRepositoryImpl(context);
-            List<ThreadInfo> threadInfos = mRepository.getThreadInfos(fileInfo.getUrl());
-
-            if (threadInfos.size() == 0) {
-                this.mThreadInfo = new ThreadInfo(0, fileInfo.getUrl(), 0, fileInfo.getLength(), 0);
-            } else {
-                this.mThreadInfo = threadInfos.get(0);
-            }
-
-            this.mIntent = new Intent(ACTION_UPDATE);
-        }
-
-        public void setPause(boolean isPause) {
-            this.mIsPause = isPause;
-        }
-
-        @Override
-        public void run() {
-            if (!mRepository.exists(mThreadInfo.getUrl(), mThreadInfo.getId())) {
-                mRepository.insert(mThreadInfo);
-            }
-
-            HttpURLConnection httpConn = null;
-            InputStream inputStream = null;
-            RandomAccessFile raf = null;
-            try {
-                URL url = new URL(mThreadInfo.getUrl());
-                httpConn = (HttpURLConnection) url.openConnection();
-                httpConn.setRequestMethod("GET");
-                int start = mThreadInfo.getStart() + mThreadInfo.getFinshed();
-                int end = mThreadInfo.getEnd();
-                httpConn.setRequestProperty("Range", "bytes=" + start + "-" + end);
-
-                File file = new File(FileUtils.getDownloadDir(mContext), mFileInfo.getName());
-                raf = new RandomAccessFile(file, "rwd");
-                raf.seek(start);
-
-                mFinished = mThreadInfo.getFinshed();
-
-                if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    inputStream = new BufferedInputStream(httpConn.getInputStream());
-                    byte[] buffer = new byte[1024 * 4];
-                    int len = -1;
-                    long time = System.currentTimeMillis();
-                    while ((len = inputStream.read(buffer)) != -1) {
-                        raf.write(buffer, 0, len);
-                        mFinished += len;
-                        if (System.currentTimeMillis() - time > 500) {
-                            time = System.currentTimeMillis();
-                            mIntent.putExtra(EXTRA_FINISHED, Integer.valueOf((mFinished / mFileInfo.getLength()) * 100));
-                            mContext.sendBroadcast(mIntent);
-                        }
-                        if (mIsPause) {
-                            mRepository.update(mThreadInfo.getUrl(), mThreadInfo.getId(), mFinished);
-                            return;
-                        }
-                    }
-                    mRepository.delete(mThreadInfo.getUrl(), mThreadInfo.getId());
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                httpConn.disconnect();
-                try {
-                    inputStream.close();
-                    raf.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
