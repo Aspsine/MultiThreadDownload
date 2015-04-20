@@ -16,7 +16,7 @@ import com.aspsine.multithreaddownload.service.DownloadService;
 
 
 public class MainActivity extends ActionBarActivity implements View.OnClickListener{
-    public static final String DOWNLOAD_URL = "http://dl.ctxy.cn/Public/Download/62/yxt.apk";
+    public static final String DOWNLOAD_URL = "https://raw.githubusercontent.com/Aspsine/Daily/master/art/daily.apk";
     TextView tvName;
     TextView tvProgress;
     ProgressBar pb;
@@ -44,7 +44,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     public void onClick(View v) {
         FileInfo fileInfo = new FileInfo();
         fileInfo.setUrl(DOWNLOAD_URL);
-        fileInfo.setName("emp.apk");
+        fileInfo.setName("daily.apk");
         Intent intent = new Intent(this, DownloadService.class);
         if (v.getId() == R.id.btnStart) {
             intent.setAction(DownloadService.ACTION_START);
@@ -72,6 +72,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             pb.setProgress(finished);
         }
     }
+
 
     @Override
     protected void onDestroy() {
