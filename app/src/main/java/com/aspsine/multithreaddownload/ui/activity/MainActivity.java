@@ -1,11 +1,13 @@
 package com.aspsine.multithreaddownload.ui.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.aspsine.multithreaddownload.R;
@@ -13,10 +15,12 @@ import com.aspsine.multithreaddownload.entity.FileInfo;
 import com.aspsine.multithreaddownload.service.DownloadService;
 
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener {
-    public static final String DOWNLOAD_URL = "http://124.205.69.171/files/A2270000000477CE/dl.ctxy.cn/Public/Download/62/yxt.apk";
+public class MainActivity extends ActionBarActivity implements View.OnClickListener{
+    public static final String DOWNLOAD_URL = "http://dl.ctxy.cn/Public/Download/62/yxt.apk";
     TextView tvName;
     TextView tvProgress;
+    ProgressBar pb;
+    DownloadProgressReceiver mReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,19 +30,53 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         findViewById(R.id.btnStart).setOnClickListener(this);
         tvName = (TextView) findViewById(R.id.tvFileName);
         tvProgress = (TextView) findViewById(R.id.tvProgress);
+        pb = (ProgressBar)findViewById(R.id.progressBar);
+        pb.setMax(100);
+
+        IntentFilter intentFilter = new IntentFilter(DownloadService.ACTION_UPDATE);
+        if (mReceiver == null){
+            mReceiver = new DownloadProgressReceiver(pb);
+        }
+        registerReceiver(mReceiver, intentFilter);
     }
 
     @Override
     public void onClick(View v) {
         FileInfo fileInfo = new FileInfo();
         fileInfo.setUrl(DOWNLOAD_URL);
+        fileInfo.setName("emp.apk");
         Intent intent = new Intent(this, DownloadService.class);
         if (v.getId() == R.id.btnStart) {
             intent.setAction(DownloadService.ACTION_START);
             intent.putExtra(DownloadService.EXTRA_FILE_INFO, fileInfo);
         } else if (v.getId() == R.id.btnPause) {
             intent.setAction(DownloadService.ACTION_PAUSE);
+            intent.putExtra(DownloadService.EXTRA_FILE_INFO, fileInfo);
         }
         startService(intent);
     }
+
+    private static class DownloadProgressReceiver extends BroadcastReceiver{
+        ProgressBar pb;
+        protected interface ProgressCallBacks{
+            void onProgress(int progress);
+        }
+
+        public DownloadProgressReceiver(ProgressBar pb) {
+            this.pb = pb;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int finished = intent.getIntExtra(DownloadService.EXTRA_FINISHED, 0);
+            pb.setProgress(finished);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
+    }
+
 }

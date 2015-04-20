@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class ThreadInfoDao extends AbstarctDao<ThreadInfo> {
 
-    private static final String TABLE_NAME = ThreadInfo.class.getName();
+    private static final String TABLE_NAME = ThreadInfo.class.getSimpleName();
 
     private DBOpenHelper mHelper;
 
@@ -23,7 +23,7 @@ public class ThreadInfoDao extends AbstarctDao<ThreadInfo> {
     }
 
     public static void createTable(SQLiteDatabase db) {
-        db.execSQL("create table " + TABLE_NAME + "(_id integer primary key autoincrement, id integer, url text, start integer, end, integer, finished integer)");
+        db.execSQL("create table " + TABLE_NAME + "(_id integer primary key autoincrement, id integer, url text, start integer, end integer, finished integer)");
     }
 
     public static void dropTable(SQLiteDatabase db) {
@@ -34,7 +34,7 @@ public class ThreadInfoDao extends AbstarctDao<ThreadInfo> {
         SQLiteDatabase db = mHelper.getWritableDatabase();
         db.execSQL("insert into "
                         + TABLE_NAME
-                        + "(id, url, start, end, finished) value(?, ?, ?, ?, ?)",
+                        + "(id, url, start, end, finished) values(?, ?, ?, ?, ?)",
                 new Object[]{info.getId(), info.getUrl(), info.getStart(), info.getEnd(), info.getFinshed()});
         db.close();
     }
@@ -60,7 +60,12 @@ public class ThreadInfoDao extends AbstarctDao<ThreadInfo> {
 
     public List<ThreadInfo> getThreadInfos(String url) {
         List<ThreadInfo> list = new ArrayList<ThreadInfo>();
-        SQLiteDatabase db = mHelper.getWritableDatabase();
+        SQLiteDatabase db = null;
+        try {
+            db = mHelper.getWritableDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         Cursor cursor = db.rawQuery("select * from "
                         + TABLE_NAME
                         + " where url = ?",

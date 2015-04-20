@@ -10,6 +10,17 @@ public class ThreadInfo {
     private int end;
     private int finshed;
 
+    public ThreadInfo() {
+    }
+
+    public ThreadInfo(int id, String url, int start, int end, int finshed) {
+        this.id = id;
+        this.url = url;
+        this.start = start;
+        this.end = end;
+        this.finshed = finshed;
+    }
+
     public int getId() {
         return id;
     }
