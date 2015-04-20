@@ -13,9 +13,10 @@ import android.widget.TextView;
 import com.aspsine.multithreaddownload.R;
 import com.aspsine.multithreaddownload.entity.FileInfo;
 import com.aspsine.multithreaddownload.service.DownloadService;
+import com.aspsine.multithreaddownload.service.DownloadTask;
 
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener{
+public class MainActivity extends ActionBarActivity implements View.OnClickListener, DownloadTask.ProgressCallBacks{
     public static final String DOWNLOAD_URL = "https://raw.githubusercontent.com/Aspsine/Daily/master/art/daily.apk";
     TextView tvName;
     TextView tvProgress;
@@ -35,7 +36,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
         IntentFilter intentFilter = new IntentFilter(DownloadService.ACTION_UPDATE);
         if (mReceiver == null){
-            mReceiver = new DownloadProgressReceiver(pb);
+            mReceiver = new DownloadProgressReceiver();
+            mReceiver.setProgressCallBacks(this);
         }
         registerReceiver(mReceiver, intentFilter);
     }
@@ -56,23 +58,24 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         startService(intent);
     }
 
+    @Override
+    public void onProgress(int progress) {
+        pb.setProgress(progress);
+        tvProgress.setText(progress + "%");
+    }
+
     private static class DownloadProgressReceiver extends BroadcastReceiver{
-        ProgressBar pb;
-        protected interface ProgressCallBacks{
-            void onProgress(int progress);
-        }
+        DownloadTask.ProgressCallBacks mCallBacks;
 
-        public DownloadProgressReceiver(ProgressBar pb) {
-            this.pb = pb;
+        void setProgressCallBacks(DownloadTask.ProgressCallBacks callBacks){
+            this.mCallBacks = callBacks;
         }
-
         @Override
         public void onReceive(Context context, Intent intent) {
             int finished = intent.getIntExtra(DownloadService.EXTRA_FINISHED, 0);
-            pb.setProgress(finished);
+            mCallBacks.onProgress(finished);
         }
     }
-
 
     @Override
     protected void onDestroy() {
