@@ -17,7 +17,7 @@ import com.aspsine.multithreaddownload.service.DownloadTask;
 
 
 public class MainActivity extends ActionBarActivity implements View.OnClickListener, DownloadTask.ProgressCallBacks{
-    public static final String DOWNLOAD_URL = "https://raw.githubusercontent.com/Aspsine/Daily/master/art/daily.apk";
+    public static final String DOWNLOAD_URL = "http://apps.wandoujia.com/apps/com.netease.cloudmusic/download";
     TextView tvName;
     TextView tvProgress;
     ProgressBar pb;
