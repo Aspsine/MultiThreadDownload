@@ -13,17 +13,17 @@ public class DataSource {
     private static DataSource sDataSource = new DataSource();
 
     private static final String[] NAMES = {
-            "ÍøÒ×ÔÆÒôÀÖ",
-            "ÓÅ¿á",
-            "ÌÚÑ¶ÊÓÆµ",
-            "UCä¯ÀÀÆ÷",
-            "360ÊÖ»úÎÀÊ¿",
-            "Ç°³ÌÎŞÓÇ51job",
-            "ËÑºüÊÓÆµ",
-            "Î¢ĞÅµç»°±¾",
-            "ÌÔ±¦",
-            "¾ÛÃÀÓÅÆ·",
-            "ËÑ·¿Íø"
+            "ç½‘æ˜“äº‘éŸ³ä¹",
+            "ä¼˜é…·",
+            "è…¾è®¯è§†é¢‘",
+            "UCæµè§ˆå™¨",
+            "360æ‰‹æœºå«å£«",
+            "å‰ç¨‹æ— å¿§51job",
+            "æœç‹è§†é¢‘",
+            "å¾®ä¿¡ç”µè¯æœ¬",
+            "æ·˜å®",
+            "èšç¾ä¼˜å“",
+            "æœæˆ¿ç½‘"
     };
 
     private static final String[] IMAGES = {
