@@ -1,9 +1,11 @@
 package com.aspsine.multithreaddownload.entity;
 
+import java.io.Serializable;
+
 /**
  * Created by Aspsine on 2015/7/8.
  */
-public class AppInfo {
+public class AppInfo implements Serializable{
 
     private String name;
     private String id;

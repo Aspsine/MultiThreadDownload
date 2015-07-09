@@ -3,6 +3,8 @@
     android:id="@+id/listView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:divider="@null"
+    android:dividerHeight="0dp"
     tools:context="com.aspsine.multithreaddownload.ui.fragment.ListViewFragment">
 
 </ListView>
