@@ -34,6 +34,8 @@ public class DownloadTask {
 
     private final ThreadInfoRepository mRepository;
 
+    private CallBack mCallBack;
+
     private List<DownloadThread> mDownloadThreads;
 
     private int mFinished = 0;
