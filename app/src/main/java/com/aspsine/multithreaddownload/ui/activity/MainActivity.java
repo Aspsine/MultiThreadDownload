@@ -11,13 +11,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.aspsine.multithreaddownload.R;
-import com.aspsine.multithreaddownload.entity.FileInfo;
+import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.service.DownloadService;
 import com.aspsine.multithreaddownload.service.DownloadTask;
 
 
 public class MainActivity extends ActionBarActivity implements View.OnClickListener, DownloadTask.ProgressCallBacks{
-    public static final String DOWNLOAD_URL = "http://apps.wandoujia.com/apps/com.netease.cloudmusic/download";
+    public static final String DOWNLOAD_URL = "https://raw.githubusercontent.com/Aspsine/Daily/master/art/daily.apk";
     TextView tvName;
     TextView tvProgress;
     ProgressBar pb;
@@ -44,16 +44,16 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        FileInfo fileInfo = new FileInfo();
-        fileInfo.setUrl(DOWNLOAD_URL);
-        fileInfo.setName("daily.apk");
+        DownloadInfo downloadInfo = new DownloadInfo();
+        downloadInfo.setUrl(DOWNLOAD_URL);
+        downloadInfo.setName("daily.apk");
         Intent intent = new Intent(this, DownloadService.class);
         if (v.getId() == R.id.btnStart) {
             intent.setAction(DownloadService.ACTION_START);
-            intent.putExtra(DownloadService.EXTRA_FILE_INFO, fileInfo);
+            intent.putExtra(DownloadService.EXTRA_DOWNLOAD_INFO, downloadInfo);
         } else if (v.getId() == R.id.btnPause) {
             intent.setAction(DownloadService.ACTION_PAUSE);
-            intent.putExtra(DownloadService.EXTRA_FILE_INFO, fileInfo);
+            intent.putExtra(DownloadService.EXTRA_DOWNLOAD_INFO, downloadInfo);
         }
         startService(intent);
     }

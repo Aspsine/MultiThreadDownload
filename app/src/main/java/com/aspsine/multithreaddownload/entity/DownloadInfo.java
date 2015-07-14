@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by aspsine on 15-4-19.
  */
-public class FileInfo implements Serializable{
+public class DownloadInfo implements Serializable{
     private String name;
     private String url;
     private int length;
@@ -34,12 +34,4 @@ public class FileInfo implements Serializable{
         this.length = length;
     }
 
-    @Override
-    public String toString() {
-        return "FileInfo{" +
-                "name='" + name + '\'' +
-                ", url='" + url + '\'' +
-                ", length=" + length +
-                '}';
-    }
 }

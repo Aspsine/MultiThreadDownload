@@ -10,7 +10,7 @@ import java.util.List;
 public interface ThreadInfoRepository{
     public void insert(ThreadInfo threadInfo);
 
-    public void delete(String url, int threadId);
+    public void delete(String url);
 
     public void update(String url, int threadId, int finished);
 

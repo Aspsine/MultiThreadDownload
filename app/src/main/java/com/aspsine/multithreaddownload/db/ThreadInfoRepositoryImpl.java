@@ -24,8 +24,8 @@ public class ThreadInfoRepositoryImpl implements ThreadInfoRepository{
     }
 
     @Override
-    public void delete(String url, int threadId) {
-        dao.delete(url, threadId);
+    public void delete(String url) {
+        dao.delete(url);
     }
 
     @Override

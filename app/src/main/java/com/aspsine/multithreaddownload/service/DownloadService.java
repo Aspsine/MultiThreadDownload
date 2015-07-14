@@ -8,27 +8,23 @@ import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 
-import com.aspsine.multithreaddownload.db.ThreadInfoRepository;
-import com.aspsine.multithreaddownload.db.ThreadInfoRepositoryImpl;
-import com.aspsine.multithreaddownload.entity.FileInfo;
-import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.util.FileUtils;
 
-import java.io.BufferedInputStream;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
 
 /**
  * Created by aspsine on 15-4-19.
  */
 public class DownloadService extends Service {
     private static final String TAG = DownloadService.class.getSimpleName();
-    public static final String EXTRA_FILE_INFO = "file_info";
+    public static final String EXTRA_DOWNLOAD_INFO = "file_info";
     public static final String EXTRA_FINISHED = "finished";
 
     public static final String ACTION_START = "action_start";
@@ -44,10 +40,11 @@ public class DownloadService extends Service {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if (msg.what == MSG_INIT) {
-                FileInfo fileInfo = (FileInfo) msg.obj;
-                mDownloadTask = new DownloadTask(DownloadService.this, fileInfo);
+                DownloadInfo downloadInfo = (DownloadInfo) msg.obj;
+                mDownloadTask = new DownloadTask(DownloadService.this, downloadInfo);
                 mDownloadTask.download();
             }
+
         }
     };
 
@@ -65,11 +62,11 @@ public class DownloadService extends Service {
         String action = intent.getAction();
         if (ACTION_START.equals(action)) {
             Log.i(TAG, "start " + this.hashCode());
-            FileInfo fileInfo = (FileInfo) intent.getSerializableExtra(EXTRA_FILE_INFO);
-            download(fileInfo);
+            DownloadInfo downloadInfo = (DownloadInfo) intent.getSerializableExtra(EXTRA_DOWNLOAD_INFO);
+            download(downloadInfo);
         } else if (ACTION_PAUSE.equals(action)) {
             Log.i(TAG, "pause " + this.hashCode());
-            FileInfo fileInfo = (FileInfo) intent.getSerializableExtra(EXTRA_FILE_INFO);
+            DownloadInfo downloadInfo = (DownloadInfo) intent.getSerializableExtra(EXTRA_DOWNLOAD_INFO);
             if(mDownloadTask != null){
                 mDownloadTask.pause();
             }
@@ -77,16 +74,16 @@ public class DownloadService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    public void download(FileInfo fileInfo) {
-        new InitThread(this, fileInfo).start();
+    public void download(DownloadInfo downloadInfo) {
+        new InitThread(this, downloadInfo).start();
     }
 
     class InitThread extends Thread {
-        FileInfo mFileInfo;
+        DownloadInfo mDownloadInfo;
         Context mContext;
 
-        private InitThread(Context context, FileInfo fileInfo) {
-            mFileInfo = fileInfo;
+        private InitThread(Context context, DownloadInfo downloadInfo) {
+            mDownloadInfo = downloadInfo;
             mContext = context;
         }
 
@@ -95,7 +92,7 @@ public class DownloadService extends Service {
             HttpURLConnection httpConn = null;
             RandomAccessFile raf = null;
             try {
-                URL url = new URL(mFileInfo.getUrl());
+                URL url = new URL(mDownloadInfo.getUrl());
                 httpConn = (HttpURLConnection) url.openConnection();
                 httpConn.setConnectTimeout(10 * 1000);
                 int length = -1;
@@ -109,11 +106,11 @@ public class DownloadService extends Service {
                 if (!dir.exists()) {
                     dir.mkdir();
                 }
-                File file = new File(dir, mFileInfo.getName());
+                File file = new File(dir, mDownloadInfo.getName());
                 raf = new RandomAccessFile(file, "rwd");
                 raf.setLength(length);
-                mFileInfo.setLength(length);
-                handler.obtainMessage(MSG_INIT, mFileInfo).sendToTarget();
+                mDownloadInfo.setLength(length);
+                handler.obtainMessage(MSG_INIT, mDownloadInfo).sendToTarget();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

@@ -14,10 +14,11 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+
         <service android:name=".service.DownloadService" />
 
         <activity
-            android:name=".ui.activity.AppListActivity"
+            android:name=".ui.activity.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

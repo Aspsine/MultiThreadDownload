@@ -16,7 +16,7 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
 
     private static final String TABLE_NAME = ThreadInfo.class.getSimpleName();
 
-    private DBOpenHelper mHelper;
+    private final DBOpenHelper mHelper;
 
     public ThreadInfoDao(Context context) {
         mHelper = new DBOpenHelper(context);
@@ -30,25 +30,25 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
         db.execSQL("drop table if exists " + TABLE_NAME);
     }
 
-    public void insert(ThreadInfo info) {
+    public synchronized void insert(ThreadInfo info) {
         SQLiteDatabase db = mHelper.getWritableDatabase();
         db.execSQL("insert into "
                         + TABLE_NAME
                         + "(id, url, start, end, finished) values(?, ?, ?, ?, ?)",
-                new Object[]{info.getId(), info.getUrl(), info.getStart(), info.getEnd(), info.getFinshed()});
+                new Object[]{info.getId(), info.getUrl(), info.getStart(), info.getEnd(), info.getFinished()});
         db.close();
     }
 
-    public void delete(String url, int threadId) {
+    public synchronized void delete(String url) {
         SQLiteDatabase db = mHelper.getWritableDatabase();
         db.execSQL("delete from "
                         + TABLE_NAME
-                        + " where url = ? and id = ?",
-                new Object[]{url, threadId});
+                        + " where url = ?",
+                new Object[]{url});
         db.close();
     }
 
-    public void update(String url, int threadId, int finished) {
+    public synchronized void update(String url, int threadId, int finished) {
         SQLiteDatabase db = mHelper.getWritableDatabase();
         db.execSQL("update "
                         + TABLE_NAME
@@ -60,23 +60,19 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
 
     public List<ThreadInfo> getThreadInfos(String url) {
         List<ThreadInfo> list = new ArrayList<ThreadInfo>();
-        SQLiteDatabase db = null;
-        try {
-            db = mHelper.getWritableDatabase();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SQLiteDatabase db = mHelper.getReadableDatabase();
+
         Cursor cursor = db.rawQuery("select * from "
                         + TABLE_NAME
                         + " where url = ?",
                 new String[]{url});
-        while (cursor.moveToNext()){
+        while (cursor.moveToNext()) {
             ThreadInfo info = new ThreadInfo();
             info.setId(cursor.getInt(cursor.getColumnIndex("id")));
             info.setUrl(cursor.getString(cursor.getColumnIndex("url")));
             info.setEnd(cursor.getInt(cursor.getColumnIndex("end")));
             info.setStart(cursor.getInt(cursor.getColumnIndex("start")));
-            info.setFinshed(cursor.getInt(cursor.getColumnIndex("finished")));
+            info.setFinished(cursor.getInt(cursor.getColumnIndex("finished")));
             list.add(info);
         }
         cursor.close();
@@ -84,8 +80,8 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
         return list;
     }
 
-    public boolean exists(String url, int threadId) {
-        SQLiteDatabase db = mHelper.getWritableDatabase();
+    public synchronized boolean exists(String url, int threadId) {
+        SQLiteDatabase db = mHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery("select * from "
                         + TABLE_NAME
                         + " where url = ? and id = ?",

@@ -8,17 +8,17 @@ public class ThreadInfo {
     private String url;
     private int start;
     private int end;
-    private int finshed;
+    private int finished;
 
     public ThreadInfo() {
     }
 
-    public ThreadInfo(int id, String url, int start, int end, int finshed) {
+    public ThreadInfo(int id, String url, int start, int end, int finished) {
         this.id = id;
         this.url = url;
         this.start = start;
         this.end = end;
-        this.finshed = finshed;
+        this.finished = finished;
     }
 
     public int getId() {
@@ -53,22 +53,13 @@ public class ThreadInfo {
         this.end = end;
     }
 
-    public int getFinshed() {
-        return finshed;
+    public int getFinished() {
+        return finished;
     }
 
-    public void setFinshed(int finshed) {
-        this.finshed = finshed;
+    public void setFinished(int finished) {
+        this.finished = finished;
     }
 
-    @Override
-    public String toString() {
-        return "ThreadInfo{" +
-                "id=" + id +
-                ", url='" + url + '\'' +
-                ", start=" + start +
-                ", end=" + end +
-                ", finshed=" + finshed +
-                '}';
-    }
+
 }
