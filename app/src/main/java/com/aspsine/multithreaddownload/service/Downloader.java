@@ -27,7 +27,7 @@ public class Downloader {
      * key: Tag
      * value: DownloadTask
      */
-    Map<String, DownloadTask> mDownloadTaskMap;
+    private Map<String, DownloadTask> mDownloadTaskMap;
 
     private DownloadConfiguration mConfig;
 
