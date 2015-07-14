@@ -9,6 +9,7 @@ import com.aspsine.multithreaddownload.db.ThreadInfoRepositoryImpl;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
 import com.aspsine.multithreaddownload.util.FileUtils;
+import com.aspsine.multithreaddownload.util.IOCloseUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -19,13 +20,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Aspsine on 2015/4/20.
  */
 public class DownloadTask {
-    private final Context mContext;
+
     private final DownloadInfo mDownloadInfo;
+    private final File mDownloadDir;
+    private final ExecutorService mExecutorService;
+
     private final ThreadInfoRepository mRepository;
 
     private List<DownloadThread> mDownloadThreads;
@@ -34,16 +40,25 @@ public class DownloadTask {
     private boolean mIsPause = false;
     private boolean mCancel = false;
 
-    public DownloadTask(Context context, DownloadInfo downloadInfo) {
-        this.mContext = context;
+    public DownloadTask(DownloadInfo downloadInfo, File downloadDir, ExecutorService executorService) {
         this.mDownloadInfo = downloadInfo;
-        mRepository = App.getThreadInfoRepository();
+        this.mDownloadDir = downloadDir;
+        this.mExecutorService = executorService;
+
+        this.mRepository = App.getThreadInfoRepository();
     }
 
+    public DownloadInfo getDownloadInfo() {
+        return mDownloadInfo;
+    }
 
-    final int threadNum = 5;
+    public int getFinished() {
+        return mFinished;
+    }
 
-    public void download() {
+    public static final int threadNum = 5;
+
+    public void start() {
         //
         mIsPause = false;
         mCancel = false;
@@ -67,7 +82,6 @@ public class DownloadTask {
             }
         }
 
-
         // thread list
         mDownloadThreads = new ArrayList<>();
         for (ThreadInfo threadInfo : threadInfos) {
@@ -77,7 +91,7 @@ public class DownloadTask {
 
         // start
         for (DownloadThread downloadThread : mDownloadThreads) {
-            downloadThread.start();
+            mExecutorService.execute(downloadThread);
         }
     }
 
@@ -133,7 +147,7 @@ public class DownloadTask {
                 int end = mThreadInfo.getEnd();
                 httpConn.setRequestProperty("Range", "bytes=" + start + "-" + end);
 
-                File file = new File(FileUtils.getDownloadDir(mContext), mDownloadInfo.getName());
+                File file = new File(mDownloadDir, mDownloadInfo.getName());
                 raf = new RandomAccessFile(file, "rwd");
                 raf.seek(start);
 
@@ -146,12 +160,13 @@ public class DownloadTask {
                     long time = System.currentTimeMillis();
                     while ((len = inputStream.read(buffer)) != -1) {
                         raf.write(buffer, 0, len);
+                        mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
                         mFinished += len;
                         int progress = Integer.valueOf(mFinished * 100 / mDownloadInfo.getLength());
                         if (System.currentTimeMillis() - time > 500 || progress == 100) {
                             time = System.currentTimeMillis();
-                            mIntent.putExtra(DownloadService.EXTRA_FINISHED, progress);
-                            mContext.sendBroadcast(mIntent);
+//                            mIntent.putExtra(DownloadService.EXTRA_FINISHED, progress);
+//                            mContext.sendBroadcast(mIntent);
                         }
                         if (mIsPause) {
                             mRepository.update(mThreadInfo.getUrl(), mThreadInfo.getId(), mFinished);
@@ -168,20 +183,12 @@ public class DownloadTask {
             } finally {
                 httpConn.disconnect();
                 try {
-                    if (inputStream != null) {
-                        inputStream.close();
-                    }
-                    if (raf != null) {
-                        raf.close();
-                    }
+                    IOCloseUtils.close(inputStream);
+                    IOCloseUtils.close(raf);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
-    }
-
-    public static interface ProgressCallBacks {
-        public void onProgress(int progress);
     }
 }
