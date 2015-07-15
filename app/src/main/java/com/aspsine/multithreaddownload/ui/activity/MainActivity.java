@@ -16,7 +16,7 @@ import com.aspsine.multithreaddownload.service.DownloadService;
 import com.aspsine.multithreaddownload.service.DownloadTask;
 
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener, DownloadTask.ProgressCallBacks{
+public class MainActivity extends ActionBarActivity implements View.OnClickListener{
     public static final String DOWNLOAD_URL = "https://raw.githubusercontent.com/Aspsine/Daily/master/art/daily.apk";
     TextView tvName;
     TextView tvProgress;

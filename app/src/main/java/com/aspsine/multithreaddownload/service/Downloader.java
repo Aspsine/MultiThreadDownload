@@ -1,13 +1,11 @@
 package com.aspsine.multithreaddownload.service;
 
 import android.os.Handler;
-import android.os.Message;
+import android.os.Looper;
 
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,7 +31,7 @@ public class Downloader {
 
     private ExecutorService mExecutorService;
 
-    private static CallBackHandler handler;
+    private DownloadStatusDelivery mDelivery;
 
     public static Downloader getInstance() {
         if (sDownloader == null) {
@@ -58,6 +56,7 @@ public class Downloader {
         }
         this.mConfig = configuration;
         mExecutorService = Executors.newFixedThreadPool(configuration.maxThreadNum);
+        mDelivery = new DownloadStatusDeliveryImpl(new Handler(Looper.getMainLooper()));
     }
 
     private void addTask(String url, DownloadTask downloadTask) {
@@ -68,57 +67,18 @@ public class Downloader {
         return mDownloadTaskMap.get(createTag(url));
     }
 
-    public void download(DownloadInfo downloadInfo) {
-        List<DownloadInfo> downloadInfos = new ArrayList<>();
-        downloadInfos.add(downloadInfo);
-        download(downloadInfos);
-    }
-
-    public void download(List<DownloadInfo> downloadInfos) {
+    public void download(DownloadInfo downloadInfo, CallBack callBack) {
         if (mConfig == null) {
             new RuntimeException("Please config first!");
             return;
         }
-
-        for (DownloadInfo downloadInfo : downloadInfos) {
-            addTask(downloadInfo.getUrl(), new DownloadTask(downloadInfo, mConfig.downloadDir, mExecutorService));
-        }
-
-        for (DownloadTask task : mDownloadTaskMap.values()) {
-            task.start();
-        }
+        final DownloadTask task = new DownloadTask(downloadInfo, mConfig.downloadDir, mExecutorService, new DownloadStatus(callBack), mDelivery);
+        addTask(downloadInfo.getUrl(), task);
+        task.start();
     }
 
     private static String createTag(String url) {
         return String.valueOf(url.hashCode());
     }
 
-    private static final class CallBackHandler extends Handler {
-        Map<String, CallBack> mCallBackMap;
-
-        public CallBackHandler(Map<String, CallBack> callBackMap) {
-            this.mCallBackMap = callBackMap;
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            DownloadTask task = (DownloadTask) msg.obj;
-            CallBack callBack = mCallBackMap.get(task.getDownloadInfo().getUrl());
-            switch (msg.what) {
-                case Constants.WHAT.ON_PROGRESS:
-                    callBack.onProgressUpdate(task.getFinished(), task.getDownloadInfo().getLength(), (task.getFinished() / task.getDownloadInfo().getLength()) / 100);
-                    break;
-                case Constants.WHAT.ON_COMPLETE:
-                    callBack.onComplete();
-                    break;
-                case Constants.WHAT.ON_FAILURE:
-                    //TODO
-                    callBack.onFailure(new Exception());
-                    break;
-            }
-        }
-
-
-    }
 }

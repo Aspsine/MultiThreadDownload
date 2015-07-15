@@ -2,6 +2,9 @@ package com.aspsine.multithreaddownload.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.TextUtils;
 
 import com.aspsine.multithreaddownload.App;
 import com.aspsine.multithreaddownload.db.ThreadInfoRepository;
@@ -11,8 +14,11 @@ import com.aspsine.multithreaddownload.entity.ThreadInfo;
 import com.aspsine.multithreaddownload.util.FileUtils;
 import com.aspsine.multithreaddownload.util.IOCloseUtils;
 
+import org.w3c.dom.Text;
+
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -31,8 +37,11 @@ public class DownloadTask {
     private final DownloadInfo mDownloadInfo;
     private final File mDownloadDir;
     private final ExecutorService mExecutorService;
+    private final DownloadStatus mDownloadStatus;
+    private final DownloadStatusDelivery mDelivery;
 
     private final ThreadInfoRepository mRepository;
+
 
     private CallBack mCallBack;
 
@@ -42,10 +51,12 @@ public class DownloadTask {
     private boolean mIsPause = false;
     private boolean mCancel = false;
 
-    public DownloadTask(DownloadInfo downloadInfo, File downloadDir, ExecutorService executorService) {
+    public DownloadTask(DownloadInfo downloadInfo, File downloadDir, ExecutorService executorService, DownloadStatus downloadStatus, DownloadStatusDelivery delivery) {
         this.mDownloadInfo = downloadInfo;
         this.mDownloadDir = downloadDir;
         this.mExecutorService = executorService;
+        this.mDownloadStatus = downloadStatus;
+        this.mDelivery = delivery;
 
         this.mRepository = App.getThreadInfoRepository();
     }
@@ -61,6 +72,10 @@ public class DownloadTask {
     public static final int threadNum = 5;
 
     public void start() {
+        mExecutorService.execute(new InitThread());
+    }
+
+    private void download() {
         //
         mIsPause = false;
         mCancel = false;
@@ -113,17 +128,75 @@ public class DownloadTask {
 
         if (allFinished) {
             mRepository.delete(mDownloadInfo.getUrl());
+            mDelivery.postComplete(mDownloadStatus);
         }
     }
 
+    /**
+     * init thread
+     */
+    class InitThread extends Thread {
+        DownloadInfo mDownloadInfo;
+
+        private InitThread(DownloadInfo downloadInfo) {
+            mDownloadInfo = downloadInfo;
+        }
+
+        @Override
+        public void run() {
+            HttpURLConnection httpConn = null;
+            RandomAccessFile raf = null;
+            try {
+                URL url = new URL(mDownloadInfo.getUrl());
+                httpConn = (HttpURLConnection) url.openConnection();
+                httpConn.setConnectTimeout(10 * 1000);
+                int length = -1;
+                if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    length = httpConn.getContentLength();
+                }
+
+                if (length <= 0) {
+                    //TODO
+                    return;
+                } else {
+                    mDownloadInfo.setLength(length);
+
+                    if (!mDownloadDir.exists()) {
+                        mDownloadDir.mkdir();
+                    }
+                    File file = new File(mDownloadDir, mDownloadInfo.getName());
+                    if (!file.exists()) {
+                        file.createNewFile();
+                    } else if (file.isFile()) {
+                        throw new DownloadException("file is already exits!");
+                    } else if (file.isDirectory()) {
+                        throw new DownloadException("");
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (DownloadException e) {
+                e.printStackTrace();
+            } finally {
+                httpConn.disconnect();
+                try {
+                    if (raf != null) raf.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * download thread
+     */
     class DownloadThread extends Thread {
         private ThreadInfo mThreadInfo;
-        private Intent mIntent;
         private boolean mDownloadFinished = false;
 
         public DownloadThread(ThreadInfo threadInfo) {
             mThreadInfo = threadInfo;
-            this.mIntent = new Intent(DownloadService.ACTION_UPDATE);
         }
 
         private boolean getDownloadFinished() {
@@ -135,7 +208,6 @@ public class DownloadTask {
             if (!mRepository.exists(mThreadInfo.getUrl(), mThreadInfo.getId())) {
                 mRepository.insert(mThreadInfo);
             }
-
             HttpURLConnection httpConn = null;
             InputStream inputStream = null;
             RandomAccessFile raf = null;
@@ -159,16 +231,12 @@ public class DownloadTask {
                     inputStream = new BufferedInputStream(httpConn.getInputStream());
                     byte[] buffer = new byte[1024 * 4];
                     int len = -1;
-                    long time = System.currentTimeMillis();
                     while ((len = inputStream.read(buffer)) != -1) {
                         raf.write(buffer, 0, len);
                         mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
                         mFinished += len;
-                        int progress = Integer.valueOf(mFinished * 100 / mDownloadInfo.getLength());
-                        if (System.currentTimeMillis() - time > 500 || progress == 100) {
-                            time = System.currentTimeMillis();
-//                            mIntent.putExtra(DownloadService.EXTRA_FINISHED, progress);
-//                            mContext.sendBroadcast(mIntent);
+                        if (mDownloadStatus.getCallBack() != null) {
+                            mDelivery.postProgressUpdate(mFinished, mDownloadInfo.getLength(), mDownloadStatus);
                         }
                         if (mIsPause) {
                             mRepository.update(mThreadInfo.getUrl(), mThreadInfo.getId(), mFinished);
@@ -176,12 +244,10 @@ public class DownloadTask {
                         }
                     }
                     mDownloadFinished = true;
-
                     checkAllFinished();
                 }
-
             } catch (IOException e) {
-                e.printStackTrace();
+                mDelivery.postFailure(e, mDownloadStatus);
             } finally {
                 httpConn.disconnect();
                 try {

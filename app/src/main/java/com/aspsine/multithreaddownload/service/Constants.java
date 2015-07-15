@@ -5,10 +5,4 @@ package com.aspsine.multithreaddownload.service;
  */
 public class Constants {
 
-    public static class WHAT {
-        public static final int ON_PROGRESS = 0xF01;
-        public static final int ON_COMPLETE = 0XF02;
-        public static final int ON_FAILURE = 0XF03;
-    }
-
 }

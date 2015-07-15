@@ -41,8 +41,6 @@ public class DownloadService extends Service {
             super.handleMessage(msg);
             if (msg.what == MSG_INIT) {
                 DownloadInfo downloadInfo = (DownloadInfo) msg.obj;
-                mDownloadTask = new DownloadTask(DownloadService.this, downloadInfo);
-                mDownloadTask.download();
             }
 
         }
@@ -63,7 +61,7 @@ public class DownloadService extends Service {
         if (ACTION_START.equals(action)) {
             Log.i(TAG, "start " + this.hashCode());
             DownloadInfo downloadInfo = (DownloadInfo) intent.getSerializableExtra(EXTRA_DOWNLOAD_INFO);
-            download(downloadInfo);
+//            download(downloadInfo);
         } else if (ACTION_PAUSE.equals(action)) {
             Log.i(TAG, "pause " + this.hashCode());
             DownloadInfo downloadInfo = (DownloadInfo) intent.getSerializableExtra(EXTRA_DOWNLOAD_INFO);
@@ -73,56 +71,4 @@ public class DownloadService extends Service {
         }
         return super.onStartCommand(intent, flags, startId);
     }
-
-    public void download(DownloadInfo downloadInfo) {
-        new InitThread(this, downloadInfo).start();
-    }
-
-    class InitThread extends Thread {
-        DownloadInfo mDownloadInfo;
-        Context mContext;
-
-        private InitThread(Context context, DownloadInfo downloadInfo) {
-            mDownloadInfo = downloadInfo;
-            mContext = context;
-        }
-
-        @Override
-        public void run() {
-            HttpURLConnection httpConn = null;
-            RandomAccessFile raf = null;
-            try {
-                URL url = new URL(mDownloadInfo.getUrl());
-                httpConn = (HttpURLConnection) url.openConnection();
-                httpConn.setConnectTimeout(10 * 1000);
-                int length = -1;
-                if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    length = httpConn.getContentLength();
-                }
-                if (length <= 0) {
-                    return;
-                }
-                File dir = FileUtils.getDownloadDir(mContext);
-                if (!dir.exists()) {
-                    dir.mkdir();
-                }
-                File file = new File(dir, mDownloadInfo.getName());
-                raf = new RandomAccessFile(file, "rwd");
-                raf.setLength(length);
-                mDownloadInfo.setLength(length);
-                handler.obtainMessage(MSG_INIT, mDownloadInfo).sendToTarget();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                httpConn.disconnect();
-                try {
-                    if (raf != null) raf.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-
 }
