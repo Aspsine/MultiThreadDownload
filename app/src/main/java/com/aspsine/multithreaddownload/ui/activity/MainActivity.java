@@ -37,7 +37,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         IntentFilter intentFilter = new IntentFilter(DownloadService.ACTION_UPDATE);
         if (mReceiver == null){
             mReceiver = new DownloadProgressReceiver();
-            mReceiver.setProgressCallBacks(this);
         }
         registerReceiver(mReceiver, intentFilter);
     }
@@ -58,22 +57,11 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         startService(intent);
     }
 
-    @Override
-    public void onProgress(int progress) {
-        pb.setProgress(progress);
-        tvProgress.setText(progress + "%");
-    }
-
     private static class DownloadProgressReceiver extends BroadcastReceiver{
-        DownloadTask.ProgressCallBacks mCallBacks;
 
-        void setProgressCallBacks(DownloadTask.ProgressCallBacks callBacks){
-            this.mCallBacks = callBacks;
-        }
         @Override
         public void onReceive(Context context, Intent intent) {
             int finished = intent.getIntExtra(DownloadService.EXTRA_FINISHED, 0);
-            mCallBacks.onProgress(finished);
         }
     }
 

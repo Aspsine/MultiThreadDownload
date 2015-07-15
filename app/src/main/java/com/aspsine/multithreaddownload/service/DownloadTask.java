@@ -1,24 +1,13 @@
 package com.aspsine.multithreaddownload.service;
 
-import android.content.Context;
-import android.content.Intent;
-import android.os.Handler;
-import android.os.Looper;
-import android.text.TextUtils;
-
 import com.aspsine.multithreaddownload.App;
 import com.aspsine.multithreaddownload.db.ThreadInfoRepository;
-import com.aspsine.multithreaddownload.db.ThreadInfoRepositoryImpl;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
-import com.aspsine.multithreaddownload.util.FileUtils;
 import com.aspsine.multithreaddownload.util.IOCloseUtils;
-
-import org.w3c.dom.Text;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -26,7 +15,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -72,7 +60,7 @@ public class DownloadTask {
     public static final int threadNum = 5;
 
     public void start() {
-        mExecutorService.execute(new InitThread());
+        mExecutorService.execute(new InitThread(mDownloadInfo));
     }
 
     private void download() {
@@ -185,6 +173,9 @@ public class DownloadTask {
                     e.printStackTrace();
                 }
             }
+
+            // start download
+            download();
         }
     }
 
