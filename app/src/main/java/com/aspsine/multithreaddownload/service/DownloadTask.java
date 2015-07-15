@@ -57,7 +57,7 @@ public class DownloadTask {
         return mFinished;
     }
 
-    public static final int threadNum = 5;
+    public static final int threadNum = 3;
 
     public void start() {
         mExecutorService.execute(new InitThread(mDownloadInfo));
@@ -148,27 +148,21 @@ public class DownloadTask {
                     return;
                 } else {
                     mDownloadInfo.setLength(length);
-
+                    mDelivery.postFinishInit(length, mDownloadStatus);
                     if (!mDownloadDir.exists()) {
                         mDownloadDir.mkdir();
                     }
                     File file = new File(mDownloadDir, mDownloadInfo.getName());
                     if (!file.exists()) {
                         file.createNewFile();
-                    } else if (file.isFile()) {
-                        throw new DownloadException("file is already exits!");
-                    } else if (file.isDirectory()) {
-                        throw new DownloadException("");
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
-            } catch (DownloadException e) {
-                e.printStackTrace();
+                mDelivery.postFailure(e, mDownloadStatus);
             } finally {
                 httpConn.disconnect();
                 try {
-                    if (raf != null) raf.close();
+                    IOCloseUtils.close(raf);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
