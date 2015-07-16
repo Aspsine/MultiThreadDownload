@@ -1,5 +1,7 @@
 package com.aspsine.multithreaddownload.service;
 
+import android.util.Log;
+
 import com.aspsine.multithreaddownload.App;
 import com.aspsine.multithreaddownload.db.ThreadInfoRepository;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
@@ -142,10 +144,9 @@ public class DownloadTask {
                 if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     length = httpConn.getContentLength();
                 }
-
                 if (length <= 0) {
                     //TODO
-                    return;
+                    throw new DownloadException("");
                 } else {
                     mDownloadInfo.setLength(length);
                     mDelivery.postFinishInit(length, mDownloadStatus);
@@ -158,6 +159,8 @@ public class DownloadTask {
                     }
                 }
             } catch (IOException e) {
+                mDelivery.postFailure(e, mDownloadStatus);
+            } catch (DownloadException e) {
                 mDelivery.postFailure(e, mDownloadStatus);
             } finally {
                 httpConn.disconnect();

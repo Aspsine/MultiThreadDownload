@@ -50,7 +50,7 @@ public class Downloader {
     }
 
     public void init(DownloadConfiguration configuration) {
-        if (mConfig == null) {
+        if (configuration == null) {
             new RuntimeException("configuration can not be null!");
             return;
         }

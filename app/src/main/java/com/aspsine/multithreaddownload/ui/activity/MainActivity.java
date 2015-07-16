@@ -6,22 +6,26 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.aspsine.multithreaddownload.R;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
+import com.aspsine.multithreaddownload.service.CallBack;
+import com.aspsine.multithreaddownload.service.DownloadConfiguration;
 import com.aspsine.multithreaddownload.service.DownloadService;
 import com.aspsine.multithreaddownload.service.DownloadTask;
+import com.aspsine.multithreaddownload.service.Downloader;
+import com.aspsine.multithreaddownload.util.FileUtils;
 
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener{
-    public static final String DOWNLOAD_URL = "https://raw.githubusercontent.com/Aspsine/Daily/master/art/daily.apk";
+public class MainActivity extends ActionBarActivity implements View.OnClickListener, CallBack {
+    public static final String DOWNLOAD_URL = "http://apps.wandoujia.com/apps/com.youku.phone/download";
     TextView tvName;
     TextView tvProgress;
     ProgressBar pb;
-    DownloadProgressReceiver mReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,44 +35,49 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         findViewById(R.id.btnStart).setOnClickListener(this);
         tvName = (TextView) findViewById(R.id.tvFileName);
         tvProgress = (TextView) findViewById(R.id.tvProgress);
-        pb = (ProgressBar)findViewById(R.id.progressBar);
+        pb = (ProgressBar) findViewById(R.id.progressBar);
         pb.setMax(100);
-
-        IntentFilter intentFilter = new IntentFilter(DownloadService.ACTION_UPDATE);
-        if (mReceiver == null){
-            mReceiver = new DownloadProgressReceiver();
-        }
-        registerReceiver(mReceiver, intentFilter);
+        DownloadConfiguration configuration = new DownloadConfiguration(this);
+        configuration.setDownloadDir(FileUtils.getDownloadDir(this));
+        configuration.setMaxThreadNum(10);
+        Downloader.getInstance().init(configuration);
     }
 
     @Override
     public void onClick(View v) {
         DownloadInfo downloadInfo = new DownloadInfo();
         downloadInfo.setUrl(DOWNLOAD_URL);
-        downloadInfo.setName("daily.apk");
-        Intent intent = new Intent(this, DownloadService.class);
+        downloadInfo.setName("youku.apk");
         if (v.getId() == R.id.btnStart) {
-            intent.setAction(DownloadService.ACTION_START);
-            intent.putExtra(DownloadService.EXTRA_DOWNLOAD_INFO, downloadInfo);
+            Downloader.getInstance().download(downloadInfo, this);
         } else if (v.getId() == R.id.btnPause) {
-            intent.setAction(DownloadService.ACTION_PAUSE);
-            intent.putExtra(DownloadService.EXTRA_DOWNLOAD_INFO, downloadInfo);
-        }
-        startService(intent);
-    }
-
-    private static class DownloadProgressReceiver extends BroadcastReceiver{
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int finished = intent.getIntExtra(DownloadService.EXTRA_FINISHED, 0);
         }
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(mReceiver);
+    public void onFinishInit(int total) {
+        Log.i("MainActivity", "onFinishInit=" + total);
     }
 
+    @Override
+    public void onProgressUpdate(int finished, int total) {
+        try {
+            pb.setProgress((finished * 100 / total));
+            tvProgress.setText((finished * 100 / total) + "%");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Log.i("MainActivity", "onProgressUpdate:" + "finished = " + finished + "; total=" + total);
+    }
+
+    @Override
+    public void onComplete() {
+        Log.i("MainActivity", "onComplete");
+    }
+
+    @Override
+    public void onFailure(Exception e) {
+        Log.i("MainActivity", "onFailure");
+        e.printStackTrace();
+    }
 }
