@@ -82,8 +82,9 @@ public class DownloadTask {
                 if (i == threadNum - 1) {
                     end = mDownloadInfo.getLength();
                 } else {
-                    end = start + average;
+                    end = start + average - 1;
                 }
+                Log.i("ThreadInfo", i + ":" + "start=" + start + "; end=" + end);
                 ThreadInfo threadInfo = new ThreadInfo(0, mDownloadInfo.getUrl(), start, end, 0);
                 threadInfos.add(threadInfo);
             }
@@ -134,6 +135,7 @@ public class DownloadTask {
 
         @Override
         public void run() {
+            Log.i("ThreadInfo", "InitThread = " + this.hashCode());
             HttpURLConnection httpConn = null;
             RandomAccessFile raf = null;
             try {
@@ -220,6 +222,7 @@ public class DownloadTask {
                     byte[] buffer = new byte[1024 * 4];
                     int len = -1;
                     while ((len = inputStream.read(buffer)) != -1) {
+                        Log.i("ThreadInfo", "DownloadThread = " + this.hashCode());
                         raf.write(buffer, 0, len);
                         mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
                         mFinished += len;

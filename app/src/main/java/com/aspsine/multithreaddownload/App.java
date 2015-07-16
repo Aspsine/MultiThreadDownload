@@ -27,8 +27,8 @@ public class App extends Application {
     }
 
     private void initDownloader(){
-        DownloadConfiguration configuration = new DownloadConfiguration(this);
-        configuration.setDownloadDir(FileUtils.getDownloadDir(this));
+        DownloadConfiguration configuration = new DownloadConfiguration(getApplicationContext());
+        configuration.setDownloadDir(FileUtils.getDownloadDir(getApplicationContext()));
         configuration.setMaxThreadNum(10);
         Downloader.getInstance().init(configuration);
     }

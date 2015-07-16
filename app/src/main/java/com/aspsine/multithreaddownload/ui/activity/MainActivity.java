@@ -14,7 +14,7 @@ import com.aspsine.multithreaddownload.service.Downloader;
 
 
 public class MainActivity extends ActionBarActivity implements View.OnClickListener, CallBack {
-    public static final String DOWNLOAD_URL = "https://raw.githubusercontent.com/Aspsine/Daily/master/art/daily.apk";
+    public static final String DOWNLOAD_URL = "http://js.soufunimg.com/industry/csis/app/CIQuestionnaire_android_-2000.apk";
     TextView tvName;
     TextView tvProgress;
     ProgressBar pb;
@@ -35,7 +35,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     public void onClick(View v) {
         DownloadInfo downloadInfo = new DownloadInfo();
         downloadInfo.setUrl(DOWNLOAD_URL);
-        downloadInfo.setName("daily.apk");
+        downloadInfo.setName("CIQuestionnaire_android.apk");
         if (v.getId() == R.id.btnStart) {
             Downloader.getInstance().download(downloadInfo, this);
         } else if (v.getId() == R.id.btnPause) {
