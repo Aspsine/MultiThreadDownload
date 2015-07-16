@@ -32,9 +32,6 @@ public class DownloadTask {
 
     private final ThreadInfoRepository mRepository;
 
-
-    private CallBack mCallBack;
-
     private List<DownloadThread> mDownloadThreads;
 
     private int mFinished = 0;
@@ -148,7 +145,7 @@ public class DownloadTask {
                 }
                 if (length <= 0) {
                     //TODO
-                    throw new DownloadException("");
+                    throw new DownloadException("length<0 T-T~");
                 } else {
                     mDownloadInfo.setLength(length);
                     mDelivery.postFinishInit(length, mDownloadStatus);
