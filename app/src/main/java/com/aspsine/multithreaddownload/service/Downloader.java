@@ -51,8 +51,7 @@ public class Downloader {
 
     public void init(DownloadConfiguration configuration) {
         if (configuration == null) {
-            new RuntimeException("configuration can not be null!");
-            return;
+            throw new RuntimeException("configuration can not be null!");
         }
         this.mConfig = configuration;
         mExecutorService = Executors.newFixedThreadPool(configuration.maxThreadNum);
@@ -69,8 +68,7 @@ public class Downloader {
 
     public void download(DownloadInfo downloadInfo, CallBack callBack) {
         if (mConfig == null) {
-            new RuntimeException("Please config first!");
-            return;
+            throw new RuntimeException("Please config first!");
         }
         final DownloadTask task = new DownloadTask(downloadInfo, mConfig.downloadDir, mExecutorService, new DownloadStatus(callBack), mDelivery);
         addTask(downloadInfo.getUrl(), task);
