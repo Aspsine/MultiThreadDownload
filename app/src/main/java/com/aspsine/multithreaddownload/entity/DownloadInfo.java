@@ -5,10 +5,17 @@ import java.io.Serializable;
 /**
  * Created by aspsine on 15-4-19.
  */
-public class DownloadInfo implements Serializable{
+public class DownloadInfo implements Serializable {
     private String name;
     private String url;
+    private int progress;
     private int length;
+    private int finished;
+
+    public DownloadInfo(String name, String url) {
+        this.name = name;
+        this.url = url;
+    }
 
     public String getName() {
         return name;
@@ -34,4 +41,19 @@ public class DownloadInfo implements Serializable{
         this.length = length;
     }
 
+    public int getProgress() {
+        return progress;
+    }
+
+    public synchronized void setProgress(int progress) {
+        this.progress = progress;
+    }
+
+    public int getFinished() {
+        return finished;
+    }
+
+    public synchronized void setFinished(int finished) {
+        this.finished = finished;
+    }
 }

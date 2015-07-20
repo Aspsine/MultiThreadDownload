@@ -9,6 +9,7 @@ public class ThreadInfo {
     private int start;
     private int end;
     private int finished;
+    private int progress;
 
     public ThreadInfo() {
     }
@@ -61,5 +62,11 @@ public class ThreadInfo {
         this.finished = finished;
     }
 
+    public int getProgress() {
+        return progress;
+    }
 
+    public void setProgress(int progress) {
+        this.progress = progress;
+    }
 }

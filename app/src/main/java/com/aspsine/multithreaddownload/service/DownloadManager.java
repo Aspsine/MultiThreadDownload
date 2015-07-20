@@ -2,6 +2,7 @@ package com.aspsine.multithreaddownload.service;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
@@ -74,26 +75,30 @@ public class DownloadManager {
     }
 
     /**
-     * @param downloadInfo
+     * @param fileName
+     * @param url
      * @param callBack
-     * @return tag
      */
-    public void download(DownloadInfo downloadInfo, CallBack callBack) {
+    public void download(String fileName, String url, CallBack callBack) {
         if (mConfig == null) {
             throw new RuntimeException("Please config first!");
         }
+        if (TextUtils.isEmpty(fileName) || TextUtils.isEmpty(url)) {
+            throw new RuntimeException("fileName or url can not be null or empty!");
+        }
+        final DownloadInfo downloadInfo = new DownloadInfo(fileName, url);
         final DownloadRequest request = new DownloadRequest(downloadInfo, mConfig.downloadDir, mDBManager, mExecutorService, new DownloadStatus(callBack), mDelivery);
         String tag = createTag(downloadInfo.getUrl());
         addRequest(tag, request);
     }
 
-    public void pause(DownloadInfo downloadInfo) {
-        DownloadRequest request = mDownloadRequestMap.get(createTag(downloadInfo.getUrl()));
+    public void pause(String url) {
+        DownloadRequest request = mDownloadRequestMap.get(createTag(url));
         request.pause();
     }
 
-    public void cancel(DownloadInfo downloadInfo){
-        DownloadRequest request = mDownloadRequestMap.get(createTag(downloadInfo.getUrl()));
+    public void cancel(String url) {
+        DownloadRequest request = mDownloadRequestMap.get(createTag(url));
         request.cancel();
     }
 
