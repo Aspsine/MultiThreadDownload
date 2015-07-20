@@ -23,10 +23,8 @@ public class DownloadRequest {
     private final DownloadStatus mDownloadStatus;
     private final DownloadStatusDelivery mDelivery;
 
-
     private List<DownloadTask> mDownloadTasks;
 
-    private volatile int mFinished = 0;
     private boolean mIsPause = false;
     private boolean mCancel = false;
 
@@ -38,14 +36,6 @@ public class DownloadRequest {
         this.mDownloadStatus = downloadStatus;
         this.mDelivery = delivery;
         this.mDBManager = dbManager;
-    }
-
-    public DownloadInfo getDownloadInfo() {
-        return mDownloadInfo;
-    }
-
-    public int getFinished() {
-        return mFinished;
     }
 
     public static final int threadNum = 3;
