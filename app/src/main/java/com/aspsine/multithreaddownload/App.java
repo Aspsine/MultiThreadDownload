@@ -3,19 +3,14 @@ package com.aspsine.multithreaddownload;
 import android.app.Application;
 import android.content.Context;
 
-import com.aspsine.multithreaddownload.db.ThreadInfoRepository;
-import com.aspsine.multithreaddownload.db.ThreadInfoRepositoryImpl;
 import com.aspsine.multithreaddownload.service.DownloadConfiguration;
-import com.aspsine.multithreaddownload.service.Downloader;
+import com.aspsine.multithreaddownload.service.DownloadManager;
 import com.aspsine.multithreaddownload.util.FileUtils;
 
 /**
  * Created by Aspsine on 2015/4/20.
  */
 public class App extends Application {
-
-    private static ThreadInfoRepository sThreadInfoRepository;
-
     private static Context sContext;
 
     @Override
@@ -26,19 +21,16 @@ public class App extends Application {
         initDownloader();
     }
 
-    private void initDownloader(){
+    private void initDownloader() {
         DownloadConfiguration configuration = new DownloadConfiguration(getApplicationContext());
         configuration.setDownloadDir(FileUtils.getDownloadDir(getApplicationContext()));
         configuration.setMaxThreadNum(10);
-        Downloader.getInstance().init(configuration);
+        DownloadManager.getInstance().init(configuration);
     }
 
-    public static ThreadInfoRepository getThreadInfoRepository() {
-        if (sThreadInfoRepository == null) {
-            synchronized (App.class) {
-                sThreadInfoRepository = new ThreadInfoRepositoryImpl(sContext);
-            }
-        }
-        return sThreadInfoRepository;
+    public static Context getContext() {
+        return sContext;
     }
+
+
 }

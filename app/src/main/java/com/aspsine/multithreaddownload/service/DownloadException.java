@@ -12,6 +12,10 @@ public class DownloadException extends Exception {
         this.mErrorMessage = detailMessage;
     }
 
+    public DownloadException(Throwable throwable) {
+        super(throwable);
+    }
+
     public DownloadException(String detailMessage, Throwable throwable) {
         super(detailMessage, throwable);
         this.mErrorMessage = detailMessage;

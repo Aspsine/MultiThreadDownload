@@ -3,16 +3,18 @@ package com.aspsine.multithreaddownload.service;
 /**
  * Created by Aspsine on 2015/7/15.
  */
-public class DownloadStatus{
-    public static final int FLAG_FINISH_INIT = 0XF00;
-    public static final int FLAG_PROGRESS_UPDATE = 0xF01;
+public class DownloadStatus {
+    public static final int FLAG_CONNECTED = 0XF00;
+    public static final int FLAG_PROGRESS = 0xF01;
     public static final int FLAG_COMPLETE = 0XF02;
-    public static final int FLAG_FAILURE = 0XF03;
+    public static final int FLAG_PAUSE = 0XF03;
+    public static final int FLAG_CANCEL = 0XF04;
+    public static final int FLAG_FAILURE = 0XF05;
 
     private int flag;
     private int length;
     private int finished;
-    private Exception exception;
+    private DownloadException exception;
 
     private CallBack callBack;
 
@@ -44,11 +46,11 @@ public class DownloadStatus{
         this.finished = finished;
     }
 
-    public Exception getException() {
+    public DownloadException getException() {
         return exception;
     }
 
-    public void setException(Exception exception) {
+    public void setException(DownloadException exception) {
         this.exception = exception;
     }
 

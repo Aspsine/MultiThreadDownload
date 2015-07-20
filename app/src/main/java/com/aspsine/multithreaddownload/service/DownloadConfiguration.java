@@ -5,7 +5,6 @@ import android.content.Context;
 import com.aspsine.multithreaddownload.util.FileUtils;
 
 import java.io.File;
-import java.util.LinkedList;
 
 /**
  * Created by Aspsine on 2015/7/14.
@@ -16,9 +15,11 @@ public class DownloadConfiguration {
      */
     public File downloadDir;
     /**
-     * the max num of thread that Downloader create
+     * the max num of thread that  create
      */
     public int maxThreadNum;
+
+    public final Context context;
 
     /**
      * init with default value
@@ -26,7 +27,9 @@ public class DownloadConfiguration {
      * @param context
      */
     public DownloadConfiguration(Context context) {
-        final File defaultDownloadDir = FileUtils.getDownloadDir(context.getApplicationContext());
+        this.context = context.getApplicationContext();
+
+        final File defaultDownloadDir = FileUtils.getDownloadDir(this.context);
         final int defaultMaxThreadNum = 10;
 
         downloadDir = defaultDownloadDir;
