@@ -1,5 +1,7 @@
 package com.aspsine.multithreaddownload.core;
 
+import com.aspsine.multithreaddownload.CallBack;
+
 /**
  * Created by Aspsine on 2015/7/15.
  */

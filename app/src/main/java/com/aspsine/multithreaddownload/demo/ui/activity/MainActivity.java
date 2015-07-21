@@ -7,8 +7,8 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.DownloadManager;
-import com.aspsine.multithreaddownload.core.CallBack;
 import com.aspsine.multithreaddownload.demo.R;
 
 

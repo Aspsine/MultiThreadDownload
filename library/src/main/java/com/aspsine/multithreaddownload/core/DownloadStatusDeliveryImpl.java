@@ -2,6 +2,8 @@ package com.aspsine.multithreaddownload.core;
 
 import android.os.Handler;
 
+import com.aspsine.multithreaddownload.CallBack;
+
 import java.util.concurrent.Executor;
 
 /**

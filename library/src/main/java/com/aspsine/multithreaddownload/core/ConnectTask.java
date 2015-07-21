@@ -1,8 +1,6 @@
 package com.aspsine.multithreaddownload.core;
 
-/**
- * Created by Aspsine on 2015/7/20.
- */
+
 
 import android.util.Log;
 
@@ -13,7 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * init thread
+ * Created by Aspsine on 2015/7/20.
  */
 public class ConnectTask implements Runnable {
     private DownloadInfo mDownloadInfo;
@@ -26,7 +24,7 @@ public class ConnectTask implements Runnable {
     }
 
     public ConnectTask(DownloadInfo downloadInfo, OnConnectedListener listener) {
-        mDownloadInfo = downloadInfo;
+        this.mDownloadInfo = downloadInfo;
         this.mOnConnectedListener = listener;
     }
 

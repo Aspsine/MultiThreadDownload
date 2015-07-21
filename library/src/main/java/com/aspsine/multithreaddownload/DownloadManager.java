@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 
-import com.aspsine.multithreaddownload.core.CallBack;
 import com.aspsine.multithreaddownload.core.DownloadRequest;
 import com.aspsine.multithreaddownload.core.DownloadStatus;
 import com.aspsine.multithreaddownload.core.DownloadStatusDelivery;
