@@ -87,8 +87,8 @@ public class DownloadTask implements Runnable {
             File file = new File(mDownloadDir, mDownloadInfo.getName());
             raf = new RandomAccessFile(file, "rwd");
             raf.seek(start);
-
-            if (httpConn.getResponseCode() == HttpURLConnection.HTTP_PARTIAL) {
+            final int responseCode = httpConn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_PARTIAL) {
                 inputStream = new BufferedInputStream(httpConn.getInputStream());
                 byte[] buffer = new byte[1024 * 4];
                 int len = -1;
@@ -118,8 +118,12 @@ public class DownloadTask implements Runnable {
                         mOnDownloadListener.onComplete();
                     }
                 }
+            } else if (responseCode == HttpURLConnection.HTTP_OK) {
+                throw new DownloadException("Don't support range download");
             }
         } catch (IOException e) {
+            mOnDownloadListener.onFail(new DownloadException(e));
+        } catch (DownloadException e) {
             mOnDownloadListener.onFail(new DownloadException(e));
         } finally {
             httpConn.disconnect();

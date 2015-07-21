@@ -134,7 +134,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
     }
 
     @Override
-    public void onConnected(DownloadInfo downloadInfo) {
+    public void onConnected(DownloadInfo downloadInfo, boolean isSupportRange) {
         mDelivery.postConnected(downloadInfo.getLength(), mDownloadStatus);
         if (!mDownloadDir.exists()) {
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
