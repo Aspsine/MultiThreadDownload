@@ -4,6 +4,8 @@ package com.aspsine.multithreaddownload.core;
  * Created by Aspsine on 2015/7/20.
  */
 
+import android.util.Log;
+
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
@@ -27,6 +29,7 @@ public class DownloadTask implements Runnable {
     private DownloadInfo mDownloadInfo;
     private OnDownloadListener mOnDownloadListener;
 
+
     private boolean mCancel;
     private boolean mPause;
     private boolean mFinished;
@@ -47,11 +50,11 @@ public class DownloadTask implements Runnable {
         this.mOnDownloadListener = listener;
     }
 
-    public void cancel(){
+    public void cancel() {
         mCancel = true;
     }
 
-    public void pause(){
+    public void pause() {
         mPause = true;
     }
 
@@ -63,8 +66,10 @@ public class DownloadTask implements Runnable {
     public void run() {
         this.mPause = false;
         this.mCancel = false;
-        if (!mDBManager.exists(mThreadInfo.getUrl(), mThreadInfo.getId())) {
-            mDBManager.insert(mThreadInfo);
+        synchronized (mDBManager) {
+            if (!mDBManager.exists(mThreadInfo.getUrl(), mThreadInfo.getId())) {
+                mDBManager.insert(mThreadInfo);
+            }
         }
         HttpURLConnection httpConn = null;
         InputStream inputStream = null;
@@ -87,23 +92,32 @@ public class DownloadTask implements Runnable {
                 inputStream = new BufferedInputStream(httpConn.getInputStream());
                 byte[] buffer = new byte[1024 * 4];
                 int len = -1;
-                while ((len = inputStream.read(buffer)) != -1) {
-                    if (mCancel) {
-                        return;
-                    }
-                    if (mPause) {
-                        mDBManager.update(mThreadInfo.getUrl(), mThreadInfo.getId(), mDownloadInfo.getFinished());
-                        return;
-                    }
+                while ((len = inputStream.read(buffer)) != -1 && !mCancel && !mPause) {
                     raf.write(buffer, 0, len);
                     mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
+                    Log.i("DownloadTask", "[Downloading] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     synchronized (mOnDownloadListener) {
                         mDownloadInfo.setFinished(mDownloadInfo.getFinished() + len);
                         mOnDownloadListener.onProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
                     }
                 }
-                mFinished = true;
-                mOnDownloadListener.onComplete();
+                if (mCancel) {
+                    // cancel
+                    Log.i("DownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                } else if (mPause) {
+                    // pause
+                    Log.i("DownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    synchronized (mOnDownloadListener) {
+                        mDBManager.update(mThreadInfo.getUrl(), mThreadInfo.getId(), mThreadInfo.getFinished());
+                    }
+                } else if (!mCancel && !mPause) {
+                    // complete
+                    Log.i("DownloadTask", "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    mFinished = true;
+                    synchronized (mOnDownloadListener) {
+                        mOnDownloadListener.onComplete();
+                    }
+                }
             }
         } catch (IOException e) {
             mOnDownloadListener.onFail(new DownloadException(e));

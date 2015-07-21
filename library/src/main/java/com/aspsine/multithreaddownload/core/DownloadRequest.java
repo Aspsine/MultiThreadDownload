@@ -6,6 +6,7 @@ import android.util.Log;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.util.ListUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -44,11 +45,16 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
     public void start() {
         mIsPause = false;
         mCancel = false;
+        mDownloadInfo.setFinished(0);
+        mDownloadInfo.setLength(0);
         ConnectTask connectTask = new ConnectTask(mDownloadInfo, this);
         mExecutorService.execute(connectTask);
     }
 
     public void pause() {
+        if (ListUtils.isEmpty(mDownloadTasks)) {
+            return;
+        }
         mIsPause = true;
         for (DownloadTask task : mDownloadTasks) {
             task.pause();
@@ -57,10 +63,14 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
     }
 
     public void cancel() {
+        if (ListUtils.isEmpty(mDownloadTasks)) {
+            return;
+        }
         mCancel = true;
         for (DownloadTask task : mDownloadTasks) {
             task.cancel();
         }
+        mDBManager.delete(mDownloadInfo.getUrl());
         File file = new File(mDownloadDir, mDownloadInfo.getName());
         if (file.exists() && file.isFile()) {
             file.delete();
@@ -81,6 +91,11 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
 
     private void download(DownloadInfo downloadInfo) {
         List<ThreadInfo> threadInfos = getThreadInfos();
+        int finished = 0;
+        for (ThreadInfo threadInfo : threadInfos) {
+            finished += threadInfo.getFinished();
+        }
+        mDownloadInfo.setFinished(finished);
         // init tasks
         mDownloadTasks = new ArrayList<>();
         for (ThreadInfo threadInfo : threadInfos) {
@@ -109,7 +124,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
                     end = start + average - 1;
                 }
                 Log.i("ThreadInfo", i + ":" + "start=" + start + "; end=" + end);
-                ThreadInfo threadInfo = new ThreadInfo(0, mDownloadInfo.getUrl(), start, end, 0);
+                ThreadInfo threadInfo = new ThreadInfo(i, mDownloadInfo.getUrl(), start, end, 0);
                 threadInfos.add(threadInfo);
             }
         }

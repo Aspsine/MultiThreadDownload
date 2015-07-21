@@ -13,8 +13,8 @@ public class DataBaseManager {
     private static DataBaseManager sDataBaseManager;
     private final ThreadInfoDao mThreadInfoDao;
 
-    public static DataBaseManager getInstance(Context context){
-        if (sDataBaseManager == null){
+    public static DataBaseManager getInstance(Context context) {
+        if (sDataBaseManager == null) {
             sDataBaseManager = new DataBaseManager(context);
         }
         return sDataBaseManager;

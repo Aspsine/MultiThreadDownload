@@ -28,7 +28,7 @@ public class DownloadManager {
      */
     private static DownloadManager sDownloadManager;
 
-    private static DataBaseManager mDBManager;
+    private DataBaseManager mDBManager;
 
     /**
      * key: Tag
@@ -69,15 +69,6 @@ public class DownloadManager {
         mDBManager = DataBaseManager.getInstance(mConfig.context);
     }
 
-    private void addRequest(String tag, DownloadRequest downloadRequest) {
-        mDownloadRequestMap.put(tag, downloadRequest);
-        downloadRequest.start();
-    }
-
-    private DownloadRequest getDownloadRequest(String url) {
-        return mDownloadRequestMap.get(createTag(url));
-    }
-
     /**
      * @param fileName
      * @param url
@@ -90,25 +81,38 @@ public class DownloadManager {
         if (TextUtils.isEmpty(fileName) || TextUtils.isEmpty(url)) {
             throw new RuntimeException("fileName or url can not be null or empty!");
         }
-        final DownloadInfo downloadInfo = new DownloadInfo(fileName, url);
-        final DownloadRequest request = new DownloadRequest(downloadInfo, mConfig.downloadDir, mDBManager, mExecutorService, new DownloadStatus(callBack), mDelivery);
-        String tag = createTag(downloadInfo.getUrl());
-        addRequest(tag, request);
+        final String tag = createTag(url);
+        final DownloadInfo downloadInfo;
+        final DownloadRequest request;
+        if (mDownloadRequestMap.containsKey(tag)) {
+            request = mDownloadRequestMap.get(tag);
+        } else {
+            downloadInfo = new DownloadInfo(fileName, url);
+            request = new DownloadRequest(downloadInfo, mConfig.downloadDir, mDBManager, mExecutorService, new DownloadStatus(callBack), mDelivery);
+            mDownloadRequestMap.put(tag, request);
+        }
+        request.start();
     }
 
     public void pause(String url) {
-        DownloadRequest request = mDownloadRequestMap.get(createTag(url));
+        String tag = createTag(url);
+        DownloadRequest request = mDownloadRequestMap.get(tag);
         request.pause();
     }
 
     public void cancel(String url) {
         DownloadRequest request = mDownloadRequestMap.get(createTag(url));
         request.cancel();
+        mDownloadRequestMap.remove(createTag(url));
     }
 
     public int getDownloadProgress(DownloadInfo downloadInfo) {
         List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(downloadInfo.getUrl());
         return 0;
+    }
+
+    private DownloadRequest getDownloadRequest(String url) {
+        return mDownloadRequestMap.get(createTag(url));
     }
 
     private static String createTag(String url) {

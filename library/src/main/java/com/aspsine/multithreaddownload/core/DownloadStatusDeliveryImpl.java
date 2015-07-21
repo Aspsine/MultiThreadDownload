@@ -23,14 +23,14 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
 
     @Override
     public void postConnected(int length, DownloadStatus status) {
-        status.setFlag(DownloadStatus.FLAG_CONNECTED);
+        status.setStatus(DownloadStatus.STATUS_CONNECTED);
         status.setLength(length);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
 
     @Override
     public void postProgressUpdate(int finished, int total, DownloadStatus status) {
-        status.setFlag(DownloadStatus.FLAG_PROGRESS);
+        status.setStatus(DownloadStatus.STATUS_PROGRESS);
         status.setLength(total);
         status.setFinished(finished);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
@@ -38,25 +38,25 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
 
     @Override
     public void postComplete(DownloadStatus status) {
-        status.setFlag(DownloadStatus.FLAG_COMPLETE);
+        status.setStatus(DownloadStatus.STATUS_COMPLETE);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
 
     @Override
     public void postPause(DownloadStatus status) {
-        status.setFlag(DownloadStatus.FLAG_PAUSE);
+        status.setStatus(DownloadStatus.STATUS_PAUSE);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
 
     @Override
     public void postCancel(DownloadStatus status) {
-        status.setFlag(DownloadStatus.FLAG_CANCEL);
+        status.setStatus(DownloadStatus.STATUS_CANCEL);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
 
     @Override
     public void postFailure(DownloadException e, DownloadStatus status) {
-        status.setFlag(DownloadStatus.FLAG_FAILURE);
+        status.setStatus(DownloadStatus.STATUS_FAILURE);
         status.setException(e);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
@@ -72,19 +72,20 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
 
         @Override
         public void run() {
-            switch (mDownloadStatus.getFlag()) {
-                case DownloadStatus.FLAG_CONNECTED:
+            switch (mDownloadStatus.getStatus()) {
+                case DownloadStatus.STATUS_CONNECTED:
                     mCallBack.onConnected(mDownloadStatus.getLength());
                     break;
-                case DownloadStatus.FLAG_PROGRESS:
-                    int finished = mDownloadStatus.getFinished();
-                    int length = mDownloadStatus.getLength();
-                    mCallBack.onProgress(finished, length, finished * 100 / length);
+                case DownloadStatus.STATUS_PROGRESS:
+                    final int finished = mDownloadStatus.getFinished();
+                    final int length = mDownloadStatus.getLength();
+                    final int percent = finished * 100 / length;
+                    mCallBack.onProgress(finished, length, percent);
                     break;
-                case DownloadStatus.FLAG_COMPLETE:
+                case DownloadStatus.STATUS_COMPLETE:
                     mCallBack.onComplete();
                     break;
-                case DownloadStatus.FLAG_FAILURE:
+                case DownloadStatus.STATUS_FAILURE:
                     mCallBack.onFailure(mDownloadStatus.getException());
                     break;
             }
