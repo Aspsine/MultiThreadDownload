@@ -3,6 +3,7 @@ package com.aspsine.multithreaddownload.core;
 import android.os.Environment;
 import android.util.Log;
 
+import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
@@ -42,11 +43,12 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
         this.mDBManager = dbManager;
     }
 
-    public void start() {
+    public void start(CallBack callBack) {
         mIsPause = false;
         mCancel = false;
         mDownloadInfo.setFinished(0);
         mDownloadInfo.setLength(0);
+        mDownloadStatus.setCallBack(callBack);
         ConnectTask connectTask = new ConnectTask(mDownloadInfo, this);
         mExecutorService.execute(connectTask);
     }
@@ -112,7 +114,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
         // init threadInfo from db
         List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(mDownloadInfo.getUrl());
 
-        if (threadInfos.size() == 0) {
+        if (threadInfos.isEmpty()) {
             // calculate average
             for (int i = 0; i < threadNum; i++) {
                 final int average = mDownloadInfo.getLength() / threadNum;

@@ -3,6 +3,7 @@ package com.aspsine.multithreaddownload;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.aspsine.multithreaddownload.core.DownloadRequest;
 import com.aspsine.multithreaddownload.core.DownloadStatus;
@@ -85,13 +86,15 @@ public class DownloadManager {
         final DownloadInfo downloadInfo;
         final DownloadRequest request;
         if (mDownloadRequestMap.containsKey(tag)) {
+            Log.i("DownloadManager", "use cached request");
             request = mDownloadRequestMap.get(tag);
         } else {
+            Log.i("DownloadManager", "use new request");
             downloadInfo = new DownloadInfo(fileName, url);
-            request = new DownloadRequest(downloadInfo, mConfig.downloadDir, mDBManager, mExecutorService, new DownloadStatus(callBack), mDelivery);
+            request = new DownloadRequest(downloadInfo, mConfig.downloadDir, mDBManager, mExecutorService, new DownloadStatus(), mDelivery);
             mDownloadRequestMap.put(tag, request);
         }
-        request.start();
+        request.start(callBack);
     }
 
     public void pause(String url) {
@@ -101,13 +104,17 @@ public class DownloadManager {
     }
 
     public void cancel(String url) {
-        DownloadRequest request = mDownloadRequestMap.get(createTag(url));
+        String tag = createTag(url);
+        DownloadRequest request = mDownloadRequestMap.get(tag);
         request.cancel();
-        mDownloadRequestMap.remove(createTag(url));
+        mDownloadRequestMap.remove(tag);
     }
 
     public int getDownloadProgress(DownloadInfo downloadInfo) {
         List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(downloadInfo.getUrl());
+        if (threadInfos.isEmpty()){
+
+        }
         return 0;
     }
 

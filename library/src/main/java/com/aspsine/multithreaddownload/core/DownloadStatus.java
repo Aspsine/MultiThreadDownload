@@ -20,10 +20,6 @@ public class DownloadStatus {
 
     private CallBack callBack;
 
-    public DownloadStatus(CallBack callBack) {
-        this.callBack = callBack;
-    }
-
     public int getStatus() {
         return status;
     }
