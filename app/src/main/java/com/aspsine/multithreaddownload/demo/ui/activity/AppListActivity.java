@@ -26,7 +26,7 @@ public class AppListActivity extends AppCompatActivity {
         Intent intent = getIntent();
 
 //        int type = intent.getIntExtra("EXTRA_TYPE", 0);
-        int type = 1;
+        int type = 0;
         if (savedInstanceState == null) {
             Fragment fragment =
                     type == TYPE.TYPE_LISTVIEW ?

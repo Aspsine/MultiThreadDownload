@@ -1,5 +1,7 @@
 package com.aspsine.multithreaddownload.core;
 
+import android.text.TextUtils;
+
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.util.L;
 
@@ -39,7 +41,10 @@ public class ConnectTask implements Runnable {
                 length = httpConn.getContentLength();
                 String acceptRanges = httpConn.getHeaderField("Accept-Ranges");
                 L.i("ConnectTask", "Accept-Ranges:" + acceptRanges);
-                isSupportRange = acceptRanges.equals("bytes");
+                if (!TextUtils.isEmpty(acceptRanges)){
+                    isSupportRange = acceptRanges.equals("bytes");
+                }
+                isSupportRange = false;
                 L.i("ConnectTask", "isSupportRange:" + isSupportRange);
             }
             if (length <= 0) {

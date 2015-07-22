@@ -188,6 +188,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
 
     @Override
     public void onFail(DownloadException de) {
+
         mDelivery.postFailure(de, mDownloadStatus);
     }
 }

@@ -1,5 +1,6 @@
 package com.aspsine.multithreaddownload.demo.ui.adapter;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,8 @@ import android.widget.TextView;
 
 import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
+import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
+import com.aspsine.multithreaddownload.demo.ui.activity.AppDetailActivity;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -26,6 +29,8 @@ public class ListViewAdapter extends BaseAdapter {
 
     private List<AppInfo> mAppInfos;
 
+    private OnItemClickListener mListener;
+
     public ListViewAdapter() {
         this.mAppInfos = new ArrayList<>();
     }
@@ -33,6 +38,10 @@ public class ListViewAdapter extends BaseAdapter {
     public void setData(List<AppInfo> appInfos) {
         this.mAppInfos.clear();
         this.mAppInfos.addAll(appInfos);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.mListener = listener;
     }
 
     @Override
@@ -51,7 +60,7 @@ public class ListViewAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         final ViewHolder holder;
         if (convertView == null) {
             convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_app, parent, false);
@@ -60,28 +69,49 @@ public class ListViewAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        AppInfo appInfo = mAppInfos.get(position);
+        final AppInfo appInfo = mAppInfos.get(position);
         holder.tvName.setText(appInfo.getName());
+        holder.tvDownloadPerSize.setText(appInfo.getDownloadPerSize());
+        holder.progressBar.setProgress(appInfo.getProgress());
         Picasso.with(parent.getContext()).load(appInfo.getImage()).into(holder.ivIcon);
-        holder.progressBar.setProgress(position * 5);
         holder.btnDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (mListener != null) {
+                    mListener.onItemClick(v, position, appInfo);
+                }
+            }
+        });
+        convertView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), AppDetailActivity.class);
+                intent.putExtra("EXTRA_APPINFO", mAppInfos.get(position));
+                v.getContext().startActivity(intent);
             }
         });
         return convertView;
     }
 
-    static class ViewHolder {
+    public final static class ViewHolder {
+
         @Bind(R.id.ivIcon)
-        ImageView ivIcon;
+        public ImageView ivIcon;
+
         @Bind(R.id.tvName)
-        TextView tvName;
+        public TextView tvName;
+
         @Bind(R.id.btnDownload)
-        Button btnDownload;
+        public Button btnDownload;
+
+        @Bind(R.id.tvDownloadPerSize)
+        public TextView tvDownloadPerSize;
+
+        @Bind(R.id.tvStatus)
+        public TextView tvStatus;
+
         @Bind(R.id.progressBar)
-        ProgressBar progressBar;
+        public ProgressBar progressBar;
 
         public ViewHolder(View itemView) {
             ButterKnife.bind(this, itemView);

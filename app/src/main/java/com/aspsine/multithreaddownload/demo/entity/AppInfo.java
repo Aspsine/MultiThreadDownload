@@ -11,6 +11,10 @@ public class AppInfo implements Serializable{
     private String id;
     private String image;
     private String url;
+    private String size;
+    private int progress;
+    private String downloadPerSize;
+    private String status;
 
     public AppInfo() {
     }
@@ -52,5 +56,37 @@ public class AppInfo implements Serializable{
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getDownloadPerSize() {
+        return downloadPerSize;
+    }
+
+    public void setDownloadPerSize(String downloadPerSize) {
+        this.downloadPerSize = downloadPerSize;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
