@@ -1,10 +1,11 @@
 package com.aspsine.multithreaddownload.core;
 
-import android.util.Log;
+
 
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
 import com.aspsine.multithreaddownload.util.IOCloseUtils;
+import com.aspsine.multithreaddownload.util.L;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -74,19 +75,19 @@ public class SingleDownloadTask implements DownloadTask {
                     raf.write(buffer, 0, len);
                     synchronized (mOnDownloadListener) {
                         mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
-                        Log.i("SingleDownloadTask", "[Downloading] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished() + "; length = " + mDownloadInfo.getLength());
+                        L.i("SingleDownloadTask", "[Downloading] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished() + "; length = " + mDownloadInfo.getLength());
                         mOnDownloadListener.onProgress(mThreadInfo.getFinished(), mDownloadInfo.getLength());
                     }
                 }
                 if (mCancel) {
                     // cancel
-                    Log.i("SingleDownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    L.i("SingleDownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                 } else if (mPause) {
                     // pause
-                    Log.i("SingleDownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    L.i("SingleDownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                 } else if (!mCancel && !mPause) {
                     // complete
-                    Log.i("SingleDownloadTask", "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    L.i("SingleDownloadTask", "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     mFinished = true;
                     synchronized (mOnDownloadListener) {
                         mOnDownloadListener.onComplete();

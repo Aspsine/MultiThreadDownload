@@ -1,12 +1,13 @@
 package com.aspsine.multithreaddownload.core;
 
-import android.util.Log;
+
 
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
 import com.aspsine.multithreaddownload.util.FileUtils;
+import com.aspsine.multithreaddownload.util.L;
 import com.aspsine.multithreaddownload.util.ListUtils;
 
 import java.io.File;
@@ -137,7 +138,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
                 } else {
                     end = start + average - 1;
                 }
-                Log.i("ThreadInfo", i + ":" + "start=" + start + "; end=" + end);
+                L.i("ThreadInfo", i + ":" + "start=" + start + "; end=" + end);
                 ThreadInfo threadInfo = new ThreadInfo(i, mDownloadInfo.getUrl(), start, end, 0);
                 threadInfos.add(threadInfo);
             }
@@ -178,7 +179,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
 
     @Override
     public void onComplete() {
-        Log.i("onComplete", "onComplete");
+        L.i("onComplete", "onComplete");
         if (isAllFinished()) {
             mDBManager.delete(mDownloadInfo.getUrl());
             mDelivery.postComplete(mDownloadStatus);

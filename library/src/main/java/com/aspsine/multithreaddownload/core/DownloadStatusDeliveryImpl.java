@@ -1,9 +1,9 @@
 package com.aspsine.multithreaddownload.core;
 
 import android.os.Handler;
-import android.util.Log;
 
 import com.aspsine.multithreaddownload.CallBack;
+import com.aspsine.multithreaddownload.util.L;
 
 import java.util.concurrent.Executor;
 
@@ -40,7 +40,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
 
     @Override
     public void postComplete(DownloadStatus status) {
-        Log.i("DownloadStatus", "STATUS_COMPLETE");
+        L.i("DownloadStatus", "STATUS_COMPLETE");
         status.setStatus(DownloadStatus.STATUS_COMPLETE);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
@@ -86,7 +86,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
                     mCallBack.onProgress(finished, length, percent);
                     break;
                 case DownloadStatus.STATUS_COMPLETE:
-                    Log.i("DownloadStatus", "STATUS_COMPLETE");
+                    L.i("DownloadStatus", "STATUS_COMPLETE");
                     mCallBack.onComplete();
                     break;
                 case DownloadStatus.STATUS_FAILURE:

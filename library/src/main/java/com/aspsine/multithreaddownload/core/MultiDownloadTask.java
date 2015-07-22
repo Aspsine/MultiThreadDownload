@@ -3,13 +3,11 @@ package com.aspsine.multithreaddownload.core;
 /**
  * Created by Aspsine on 2015/7/20.
  */
-
-import android.util.Log;
-
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
 import com.aspsine.multithreaddownload.util.IOCloseUtils;
+import com.aspsine.multithreaddownload.util.L;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -89,7 +87,7 @@ public class MultiDownloadTask implements DownloadTask {
                 while ((len = inputStream.read(buffer)) != -1 && !mCancel && !mPause) {
                     raf.write(buffer, 0, len);
                     mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
-                    Log.i("MultiDownloadTask", "[Downloading] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    L.i("MultiDownloadTask", "[Downloading] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     synchronized (mOnDownloadListener) {
                         mDownloadInfo.setFinished(mDownloadInfo.getFinished() + len);
                         mOnDownloadListener.onProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
@@ -97,16 +95,16 @@ public class MultiDownloadTask implements DownloadTask {
                 }
                 if (mCancel) {
                     // cancel
-                    Log.i("MultiDownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    L.i("MultiDownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                 } else if (mPause) {
                     // pause
-                    Log.i("MultiDownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    L.i("MultiDownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     synchronized (mOnDownloadListener) {
                         mDBManager.update(mThreadInfo.getUrl(), mThreadInfo.getId(), mThreadInfo.getFinished());
                     }
                 } else if (!mCancel && !mPause) {
                     // complete
-                    Log.i("MultiDownloadTask", "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    L.i("MultiDownloadTask", "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     mFinished = true;
                     synchronized (mOnDownloadListener) {
                         mOnDownloadListener.onComplete();

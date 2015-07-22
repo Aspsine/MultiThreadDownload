@@ -1,8 +1,5 @@
 package com.aspsine.multithreaddownload.core;
 
-
-import android.util.Log;
-
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.util.L;
 
@@ -30,7 +27,7 @@ public class ConnectTask implements Runnable {
 
     @Override
     public void run() {
-        Log.i("ThreadInfo", "InitThread = " + this.hashCode());
+        L.i("ThreadInfo", "InitThread = " + this.hashCode());
         HttpURLConnection httpConn = null;
         try {
             URL url = new URL(mDownloadInfo.getUrl());
@@ -41,7 +38,7 @@ public class ConnectTask implements Runnable {
             if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 length = httpConn.getContentLength();
                 String acceptRanges = httpConn.getHeaderField("Accept-Ranges");
-                Log.i("ConnectTask", "Accept-Ranges:" + acceptRanges);
+                L.i("ConnectTask", "Accept-Ranges:" + acceptRanges);
                 isSupportRange = acceptRanges.equals("bytes");
                 L.i("ConnectTask", "isSupportRange:" + isSupportRange);
             }
