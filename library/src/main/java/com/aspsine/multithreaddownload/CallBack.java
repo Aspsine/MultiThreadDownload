@@ -5,7 +5,7 @@ package com.aspsine.multithreaddownload;
  */
 public interface CallBack {
 
-    void onConnected(int total);
+    void onConnected(int total, boolean isRangeSupport);
 
     void onProgress(int finished, int total, int progress);
 

@@ -11,6 +11,7 @@ public class DownloadInfo implements Serializable {
     private int progress;
     private int length;
     private int finished;
+    private boolean isSupportRange;
 
     public DownloadInfo(String name, String url) {
         this.name = name;
@@ -55,5 +56,13 @@ public class DownloadInfo implements Serializable {
 
     public synchronized void setFinished(int finished) {
         this.finished = finished;
+    }
+
+    public boolean isSupportRange() {
+        return isSupportRange;
+    }
+
+    public void setIsSupportRange(boolean isSupportRange) {
+        this.isSupportRange = isSupportRange;
     }
 }

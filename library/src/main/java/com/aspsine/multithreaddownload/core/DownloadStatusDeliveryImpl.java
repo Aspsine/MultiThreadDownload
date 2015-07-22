@@ -1,6 +1,7 @@
 package com.aspsine.multithreaddownload.core;
 
 import android.os.Handler;
+import android.util.Log;
 
 import com.aspsine.multithreaddownload.CallBack;
 
@@ -22,9 +23,10 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
     }
 
     @Override
-    public void postConnected(int length, DownloadStatus status) {
+    public void postConnected(int length, boolean isRangeSupport, DownloadStatus status) {
         status.setStatus(DownloadStatus.STATUS_CONNECTED);
         status.setLength(length);
+        status.setIsRangeSupport(isRangeSupport);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
 
@@ -38,6 +40,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
 
     @Override
     public void postComplete(DownloadStatus status) {
+        Log.i("DownloadStatus", "STATUS_COMPLETE");
         status.setStatus(DownloadStatus.STATUS_COMPLETE);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
@@ -61,7 +64,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
 
-    private class DownloadStatusDeliveryRunnable implements Runnable {
+    private static class DownloadStatusDeliveryRunnable implements Runnable {
         private final DownloadStatus mDownloadStatus;
         private final CallBack mCallBack;
 
@@ -74,7 +77,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
         public void run() {
             switch (mDownloadStatus.getStatus()) {
                 case DownloadStatus.STATUS_CONNECTED:
-                    mCallBack.onConnected(mDownloadStatus.getLength());
+                    mCallBack.onConnected(mDownloadStatus.getLength(), mDownloadStatus.isRangeSupport());
                     break;
                 case DownloadStatus.STATUS_PROGRESS:
                     final int finished = mDownloadStatus.getFinished();
@@ -83,6 +86,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
                     mCallBack.onProgress(finished, length, percent);
                     break;
                 case DownloadStatus.STATUS_COMPLETE:
+                    Log.i("DownloadStatus", "STATUS_COMPLETE");
                     mCallBack.onComplete();
                     break;
                 case DownloadStatus.STATUS_FAILURE:

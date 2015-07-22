@@ -31,9 +31,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         pb.setMax(100);
     }
 
+    int a;
+    int b;
+
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btnStart) {
+            a = 0;
+            b = 0;
             DownloadManager.getInstance().download("CIQuestionnaire_android.apk", DOWNLOAD_URL, this);
         } else if (v.getId() == R.id.btnPause) {
             DownloadManager.getInstance().pause(DOWNLOAD_URL);
@@ -43,8 +48,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onConnected(int total) {
-        Log.i("MainActivity", "onConnected:" + total);
+    public void onConnected(int total, boolean isRangeSupport) {
+        b++;
+        Log.i("MainActivity", "onConnected:" + total + " time:" + b);
     }
 
     @Override
@@ -55,7 +61,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onComplete() {
-        Log.i("MainActivity", "onComplete");
+        a++;
+        Log.i("MainActivity", "onComplete " + a);
     }
 
     @Override

@@ -12,11 +12,15 @@ import java.io.File;
 public class FileUtils {
     private static final String DOWNLOAD_DIR = "download";
 
-    public static final File getDownloadDir(Context context) {
+    public static final File getDefaultDownloadDir(Context context) {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             return new File(context.getExternalCacheDir(), DOWNLOAD_DIR);
         }
         return new File(context.getCacheDir(), DOWNLOAD_DIR);
+    }
+
+    public static boolean isSDMounted(){
+        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
     }
 
     public static final String getPrefix(@NonNull String fileName) {

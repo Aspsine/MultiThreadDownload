@@ -22,6 +22,12 @@ public class ThreadInfo {
         this.finished = finished;
     }
 
+    public ThreadInfo(int id, String url, int finished) {
+        this.id = id;
+        this.url = url;
+        this.finished = 0;
+    }
+
     public int getId() {
         return id;
     }

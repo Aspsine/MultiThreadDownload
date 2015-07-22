@@ -29,7 +29,7 @@ public class DownloadConfiguration {
     public DownloadConfiguration(Context context) {
         this.context = context.getApplicationContext();
 
-        final File defaultDownloadDir = FileUtils.getDownloadDir(this.context);
+        final File defaultDownloadDir = FileUtils.getDefaultDownloadDir(this.context);
         final int defaultMaxThreadNum = 10;
 
         downloadDir = defaultDownloadDir;

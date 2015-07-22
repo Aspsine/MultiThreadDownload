@@ -110,12 +110,13 @@ public class DownloadManager {
         mDownloadRequestMap.remove(tag);
     }
 
-    public int getDownloadProgress(DownloadInfo downloadInfo) {
-        List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(downloadInfo.getUrl());
-        if (threadInfos.isEmpty()){
-
+    public DownloadInfo getDownloadProgress(String url) {
+        List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(url);
+        DownloadInfo downloadInfo = null;
+        if (!threadInfos.isEmpty()) {
+            
         }
-        return 0;
+        return downloadInfo;
     }
 
     private DownloadRequest getDownloadRequest(String url) {

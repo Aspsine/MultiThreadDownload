@@ -1,23 +1,23 @@
 package com.aspsine.multithreaddownload.core;
 
-import android.os.Environment;
 import android.util.Log;
 
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.util.FileUtils;
 import com.aspsine.multithreaddownload.util.ListUtils;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Aspsine on 2015/4/20.
  */
-public class DownloadRequest implements ConnectTask.OnConnectedListener, DownloadTask.OnDownloadListener {
+public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDownloadTask.OnDownloadListener {
 
     private static final int threadNum = 3;
 
@@ -32,7 +32,6 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
 
     private boolean mIsPause = false;
     private boolean mCancel = false;
-
 
     public DownloadRequest(DownloadInfo downloadInfo, File downloadDir, DataBaseManager dbManager, ExecutorService executorService, DownloadStatus downloadStatus, DownloadStatusDelivery delivery) {
         this.mDownloadInfo = downloadInfo;
@@ -80,10 +79,15 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
         mDelivery.postCancel(mDownloadStatus);
     }
 
+    /**
+     * check if all threads finished download
+     *
+     * @return
+     */
     private boolean isAllFinished() {
         boolean allFinished = true;
-        for (DownloadTask downloadTask : mDownloadTasks) {
-            if (!downloadTask.isFinished()) {
+        for (DownloadTask task : mDownloadTasks) {
+            if (!task.isFinished()) {
                 allFinished = false;
                 break;
             }
@@ -92,17 +96,26 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
     }
 
     private void download(DownloadInfo downloadInfo) {
-        List<ThreadInfo> threadInfos = getThreadInfos();
-        int finished = 0;
-        for (ThreadInfo threadInfo : threadInfos) {
-            finished += threadInfo.getFinished();
-        }
-        mDownloadInfo.setFinished(finished);
-        // init tasks
-        mDownloadTasks = new ArrayList<>();
-        for (ThreadInfo threadInfo : threadInfos) {
-            DownloadTask downloadTask = new DownloadTask(threadInfo, downloadInfo, mDownloadDir, mDBManager, this);
-            mDownloadTasks.add(downloadTask);
+        mDownloadTasks = new LinkedList<>();
+        if (downloadInfo.isSupportRange()) {
+            //multi thread
+            List<ThreadInfo> threadInfos = getMultiThreadInfos();
+            // init finished
+            int finished = 0;
+            for (ThreadInfo threadInfo : threadInfos) {
+                finished += threadInfo.getFinished();
+            }
+            mDownloadInfo.setFinished(finished);
+            // init tasks
+            for (ThreadInfo threadInfo : threadInfos) {
+                DownloadTask task = new MultiDownloadTask(threadInfo, downloadInfo, mDownloadDir, mDBManager, this);
+                mDownloadTasks.add(task);
+            }
+        } else {
+            //single thread
+            ThreadInfo threadInfo = getSingleThreadInfo();
+            DownloadTask task = new SingleDownloadTask(threadInfo, downloadInfo, mDownloadDir, this);
+            mDownloadTasks.add(task);
         }
         // start tasks
         for (DownloadTask downloadTask : mDownloadTasks) {
@@ -110,13 +123,12 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
         }
     }
 
-    private List<ThreadInfo> getThreadInfos() {
+    private List<ThreadInfo> getMultiThreadInfos() {
         // init threadInfo from db
         List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(mDownloadInfo.getUrl());
-
         if (threadInfos.isEmpty()) {
-            // calculate average
             for (int i = 0; i < threadNum; i++) {
+                // calculate average
                 final int average = mDownloadInfo.getLength() / threadNum;
                 int end = 0;
                 int start = average * i;
@@ -133,11 +145,16 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
         return threadInfos;
     }
 
+    public ThreadInfo getSingleThreadInfo() {
+        ThreadInfo threadInfo = new ThreadInfo(0, mDownloadInfo.getUrl(), 0);
+        return threadInfo;
+    }
+
     @Override
-    public void onConnected(DownloadInfo downloadInfo, boolean isSupportRange) {
-        mDelivery.postConnected(downloadInfo.getLength(), mDownloadStatus);
+    public void onConnected(DownloadInfo downloadInfo) {
+        mDelivery.postConnected(downloadInfo.getLength(), downloadInfo.isSupportRange(), mDownloadStatus);
         if (!mDownloadDir.exists()) {
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            if (FileUtils.isSDMounted()) {
                 mDownloadDir.mkdir();
             } else {
                 mDelivery.postFailure(new DownloadException("can't make dir!"), mDownloadStatus);
@@ -161,6 +178,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, Downloa
 
     @Override
     public void onComplete() {
+        Log.i("onComplete", "onComplete");
         if (isAllFinished()) {
             mDBManager.delete(mDownloadInfo.getUrl());
             mDelivery.postComplete(mDownloadStatus);

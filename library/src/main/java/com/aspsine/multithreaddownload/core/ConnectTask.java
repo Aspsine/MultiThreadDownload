@@ -4,6 +4,7 @@ package com.aspsine.multithreaddownload.core;
 import android.util.Log;
 
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
+import com.aspsine.multithreaddownload.util.L;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -17,7 +18,7 @@ public class ConnectTask implements Runnable {
     private OnConnectedListener mOnConnectedListener;
 
     interface OnConnectedListener {
-        void onConnected(DownloadInfo downloadInfo, boolean isSupportRange);
+        void onConnected(DownloadInfo downloadInfo);
 
         void onConnectedFail(DownloadException de);
     }
@@ -42,13 +43,15 @@ public class ConnectTask implements Runnable {
                 String acceptRanges = httpConn.getHeaderField("Accept-Ranges");
                 Log.i("ConnectTask", "Accept-Ranges:" + acceptRanges);
                 isSupportRange = acceptRanges.equals("bytes");
+                L.i("ConnectTask", "isSupportRange:" + isSupportRange);
             }
             if (length <= 0) {
                 //TODO
                 throw new DownloadException("length<0 T-T~");
             } else {
                 mDownloadInfo.setLength(length);
-                mOnConnectedListener.onConnected(mDownloadInfo, isSupportRange);
+                mDownloadInfo.setIsSupportRange(isSupportRange);
+                mOnConnectedListener.onConnected(mDownloadInfo);
             }
         } catch (IOException e) {
             mOnConnectedListener.onConnectedFail(new DownloadException(e));

@@ -16,6 +16,7 @@ public class DownloadStatus {
     private int status;
     private int length;
     private int finished;
+    private boolean isRangeSupport;
     private DownloadException exception;
 
     private CallBack callBack;
@@ -42,6 +43,14 @@ public class DownloadStatus {
 
     public void setFinished(int finished) {
         this.finished = finished;
+    }
+
+    public boolean isRangeSupport() {
+        return isRangeSupport;
+    }
+
+    public void setIsRangeSupport(boolean isRangeSupport) {
+        this.isRangeSupport = isRangeSupport;
     }
 
     public DownloadException getException() {

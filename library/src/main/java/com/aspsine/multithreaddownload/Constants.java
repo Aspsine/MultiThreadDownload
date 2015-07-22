@@ -5,4 +5,7 @@ package com.aspsine.multithreaddownload;
  */
 public class Constants {
 
+    public static final class CONFIG{
+        public static final boolean DEBUG = true;
+    }
 }
