@@ -1,5 +1,7 @@
 package com.aspsine.multithreaddownload;
 
+import com.aspsine.multithreaddownload.core.DownloadException;
+
 /**
  * Created by Aspsine on 2015/7/14.
  */
@@ -15,5 +17,5 @@ public interface CallBack {
 
     void onDownloadCancel();
 
-    void onFailure(Exception e);
+    void onFailure(DownloadException e);
 }

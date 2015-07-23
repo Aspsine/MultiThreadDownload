@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.DownloadManager;
+import com.aspsine.multithreaddownload.core.DownloadException;
 import com.aspsine.multithreaddownload.demo.R;
 
 
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onFailure(Exception e) {
+    public void onFailure(DownloadException e) {
         Log.i("MainActivity", "onFailure");
         e.printStackTrace();
     }

@@ -5,16 +5,22 @@ import java.io.Serializable;
 /**
  * Created by Aspsine on 2015/7/8.
  */
-public class AppInfo implements Serializable{
+public class AppInfo implements Serializable {
+    public static final int STATUS_NOT_DOWNLOAD = 0;
+    public static final int STATUS_CONNECTING = 1;
+    public static final int STATUS_CONNECT_ERROR = 2;
+    public static final int STATUS_DOWNLOADING = 3;
+    public static final int STATUS_PAUSE = 4;
+    public static final int STATUS_DOWNLOAD_ERROR = 5;
+    public static final int STATUS_COMPLETE = 6;
 
     private String name;
     private String id;
     private String image;
     private String url;
-    private String size;
     private int progress;
     private String downloadPerSize;
-    private String status;
+    private int status;
 
     public AppInfo() {
     }
@@ -58,14 +64,6 @@ public class AppInfo implements Serializable{
         this.url = url;
     }
 
-    public String getSize() {
-        return size;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
-    }
-
     public String getDownloadPerSize() {
         return downloadPerSize;
     }
@@ -82,11 +80,32 @@ public class AppInfo implements Serializable{
         this.progress = progress;
     }
 
-    public String getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public String getStatusText() {
+        switch (status) {
+            case STATUS_NOT_DOWNLOAD:
+                return "Not Download";
+            case STATUS_CONNECTING:
+                return "Connecting";
+            case STATUS_CONNECT_ERROR:
+                return "Connect Error";
+            case STATUS_DOWNLOADING:
+                return "Downloading";
+            case STATUS_PAUSE:
+                return "Pause";
+            case STATUS_DOWNLOAD_ERROR:
+                return "Download Error";
+            case STATUS_COMPLETE:
+                return "Complete";
+            default:
+                return "Not Download";
+        }
+    }
+
+    public void setStatus(int status) {
         this.status = status;
     }
 }

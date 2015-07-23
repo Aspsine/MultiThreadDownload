@@ -7,16 +7,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.DownloadManager;
+import com.aspsine.multithreaddownload.core.DownloadException;
 import com.aspsine.multithreaddownload.demo.DataSource;
 import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
+import com.aspsine.multithreaddownload.util.L;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -74,15 +74,22 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
     @Override
     public void onItemClick(View v, final int position, final AppInfo appInfo) {
 
+        appInfo.setStatus(AppInfo.STATUS_CONNECTING);
+        if (isCurrentListViewItemVisible(position)) {
+            ListViewAdapter.ViewHolder holder = getViewHolder(position);
+            holder.tvStatus.setText(appInfo.getStatusText());
+        }
+
         DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), new CallBack() {
             @Override
             public void onConnected(int total, boolean isRangeSupport) {
                 String downloadPerSize = getDownloadPerSize(0, total);
                 appInfo.setDownloadPerSize(downloadPerSize);
-                appInfo.setStatus("");
+                appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
                 if (isCurrentListViewItemVisible(position)) {
-                    TextView tvDownloadPerSize = getViewHolder(position).tvDownloadPerSize;
-                    tvDownloadPerSize.setText(downloadPerSize);
+                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                    holder.tvDownloadPerSize.setText(downloadPerSize);
+                    holder.tvStatus.setText(appInfo.getStatusText());
                 }
             }
 
@@ -91,33 +98,55 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                 String downloadPerSize = getDownloadPerSize(finished, total);
                 appInfo.setProgress(progress);
                 appInfo.setDownloadPerSize(downloadPerSize);
+                appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
                 if (isCurrentListViewItemVisible(position)) {
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    TextView tvDownloadPerSize = holder.tvDownloadPerSize;
-                    tvDownloadPerSize.setText(downloadPerSize);
-                    ProgressBar pb = holder.progressBar;
-                    pb.setProgress(progress);
+                    holder.tvDownloadPerSize.setText(downloadPerSize);
+                    holder.progressBar.setProgress(progress);
+                    holder.tvStatus.setText(appInfo.getStatusText());
+                    L.i("progressBar", "progress：" + progress);
                 }
             }
 
             @Override
             public void onComplete() {
-
+                appInfo.setStatus(AppInfo.STATUS_COMPLETE);
+                if (isCurrentListViewItemVisible(position)) {
+                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                    holder.tvStatus.setText(appInfo.getStatusText());
+                }
             }
 
             @Override
             public void onDownloadPause() {
-
+                appInfo.setStatus(AppInfo.STATUS_PAUSE);
+                if (isCurrentListViewItemVisible(position)) {
+                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                    holder.tvStatus.setText(appInfo.getStatusText());
+                }
             }
 
             @Override
             public void onDownloadCancel() {
-
+                appInfo.setStatus(AppInfo.STATUS_NOT_DOWNLOAD);
+                appInfo.setDownloadPerSize("");
+                if (isCurrentListViewItemVisible(position)) {
+                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                    holder.tvStatus.setText(appInfo.getStatusText());
+                    holder.tvDownloadPerSize.setText("");
+                }
             }
 
             @Override
-            public void onFailure(Exception e) {
-
+            public void onFailure(DownloadException e) {
+                appInfo.setStatus(AppInfo.STATUS_NOT_DOWNLOAD);
+                appInfo.setDownloadPerSize("");
+                if (isCurrentListViewItemVisible(position)) {
+                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                    holder.tvStatus.setText(appInfo.getStatusText());
+                    holder.tvDownloadPerSize.setText("");
+                }
+                e.printStackTrace();
             }
         });
     }

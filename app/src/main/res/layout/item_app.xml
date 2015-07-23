@@ -37,7 +37,7 @@
                 android:layout_alignParentRight="true"
                 android:text="@string/Download"
                 android:textColor="@color/white"
-                android:textSize="14sp" />
+                android:textAppearance="?android:textAppearanceSmall" />
         </RelativeLayout>
 
         <RelativeLayout
@@ -55,7 +55,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:text="0.51M/16.30m"
                 android:textAppearance="?android:textAppearanceSmall" />
 
             <TextView
@@ -72,7 +71,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="10dp"
                 android:layout_alignParentBottom="true"
-                android:layout_below="@+id/status"
                 android:max="100" />
         </RelativeLayout>
 

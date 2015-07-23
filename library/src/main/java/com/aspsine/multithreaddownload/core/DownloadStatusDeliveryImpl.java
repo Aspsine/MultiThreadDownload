@@ -82,7 +82,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
                 case DownloadStatus.STATUS_PROGRESS:
                     final int finished = mDownloadStatus.getFinished();
                     final int length = mDownloadStatus.getLength();
-                    final int percent = finished * 100 / length;
+                    final int percent = (int)((long)finished * 100 / length);
                     mCallBack.onProgress(finished, length, percent);
                     break;
                 case DownloadStatus.STATUS_COMPLETE:
