@@ -19,6 +19,10 @@ public interface DownloadTask extends Runnable {
 
     boolean isFinished();
 
+    boolean isPaused();
+
+    boolean isCanceled();
+
     @Override
     void run();
 }

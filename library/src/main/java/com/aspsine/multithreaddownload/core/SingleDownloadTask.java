@@ -51,6 +51,16 @@ public class SingleDownloadTask implements DownloadTask {
     }
 
     @Override
+    public boolean isPaused() {
+        return mPause;
+    }
+
+    @Override
+    public boolean isCanceled() {
+        return mCancel;
+    }
+
+    @Override
     public void run() {
         this.mPause = false;
         this.mCancel = false;

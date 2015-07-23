@@ -1,6 +1,8 @@
 package com.aspsine.multithreaddownload.core;
 
 
+import android.util.Log;
+
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
@@ -63,7 +65,9 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
         for (DownloadTask task : mDownloadTasks) {
             task.pause();
         }
-        mDelivery.postPause(mDownloadStatus);
+        if (isAllPaused()) {
+            mDelivery.postPause(mDownloadStatus);
+        }
     }
 
     public void cancel() {
@@ -85,6 +89,29 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
 
     public boolean isStarted() {
         return mStart;
+    }
+
+    private boolean isAllCanceled() {
+        boolean allCanceled = true;
+        for (DownloadTask task : mDownloadTasks) {
+            if (task.isCanceled()) {
+                allCanceled = false;
+                break;
+            }
+        }
+        return allCanceled;
+    }
+
+    private boolean isAllPaused() {
+        boolean allPaused = true;
+        for (DownloadTask task : mDownloadTasks) {
+            if (!task.isPaused()) {
+                allPaused = false;
+                break;
+            }
+        }
+        Log.i("isAllPaused", "isAllPaused = " + allPaused);
+        return allPaused;
     }
 
     /**
@@ -199,7 +226,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
     @Override
     public void onFail(DownloadException de) {
         for (DownloadTask task : mDownloadTasks) {
-            task.pause();
+            task.cancel();
         }
         mStart = false;
         mDelivery.postFailure(de, mDownloadStatus);
