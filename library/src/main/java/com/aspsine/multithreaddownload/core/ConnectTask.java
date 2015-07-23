@@ -44,7 +44,6 @@ public class ConnectTask implements Runnable {
                 if (!TextUtils.isEmpty(acceptRanges)){
                     isSupportRange = acceptRanges.equals("bytes");
                 }
-                isSupportRange = false;
                 L.i("ConnectTask", "isSupportRange:" + isSupportRange);
             }
             if (length <= 0) {
