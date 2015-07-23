@@ -1,7 +1,6 @@
 package com.aspsine.multithreaddownload.core;
 
 
-
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
@@ -31,6 +30,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
 
     private List<DownloadTask> mDownloadTasks;
 
+    private boolean mStart = false;
     private boolean mIsPause = false;
     private boolean mCancel = false;
 
@@ -44,6 +44,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
     }
 
     public void start(CallBack callBack) {
+        mStart = true;
         mIsPause = false;
         mCancel = false;
         mDownloadInfo.setFinished(0);
@@ -58,6 +59,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
             return;
         }
         mIsPause = true;
+        mStart = false;
         for (DownloadTask task : mDownloadTasks) {
             task.pause();
         }
@@ -69,6 +71,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
             return;
         }
         mCancel = true;
+        mStart = false;
         for (DownloadTask task : mDownloadTasks) {
             task.cancel();
         }
@@ -78,6 +81,10 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
             file.delete();
         }
         mDelivery.postCancel(mDownloadStatus);
+    }
+
+    public boolean isStarted() {
+        return mStart;
     }
 
     /**
@@ -169,11 +176,13 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
 
     @Override
     public void onConnectedFail(DownloadException de) {
+        mStart = false;
         mDelivery.postFailure(de, mDownloadStatus);
     }
 
     @Override
     public void onProgress(int finished, int length) {
+        mStart = true;
         mDelivery.postProgressUpdate(finished, length, mDownloadStatus);
     }
 
@@ -182,13 +191,17 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
         L.i("onComplete", "onComplete");
         if (isAllFinished()) {
             mDBManager.delete(mDownloadInfo.getUrl());
+            mStart = false;
             mDelivery.postComplete(mDownloadStatus);
         }
     }
 
     @Override
     public void onFail(DownloadException de) {
-
+        for (DownloadTask task : mDownloadTasks) {
+            task.pause();
+        }
+        mStart = false;
         mDelivery.postFailure(de, mDownloadStatus);
     }
 }

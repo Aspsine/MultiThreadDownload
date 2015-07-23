@@ -74,6 +74,7 @@ public class ListViewAdapter extends BaseAdapter {
         holder.tvDownloadPerSize.setText(appInfo.getDownloadPerSize());
         holder.tvStatus.setText(appInfo.getStatusText());
         holder.progressBar.setProgress(appInfo.getProgress());
+        holder.btnDownload.setText(appInfo.getButtonText());
         Picasso.with(parent.getContext()).load(appInfo.getImage()).into(holder.ivIcon);
         holder.btnDownload.setOnClickListener(new View.OnClickListener() {
             @Override
