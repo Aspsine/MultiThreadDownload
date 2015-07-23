@@ -3,4 +3,12 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_test">TestActivity</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="Download">Download</string>
+    <string name="Error">Error</string>
+    <string name="Complete">Complete</string>
+    <string name="title_activity_app_detail">AppDetailActivity</string>
 </resources>
