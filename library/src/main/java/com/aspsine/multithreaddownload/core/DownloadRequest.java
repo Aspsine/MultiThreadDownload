@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutorService;
  */
 public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDownloadTask.OnDownloadListener {
 
-    private static final int threadNum = 1;
+    private static final int threadNum = 3;
 
     private final DownloadInfo mDownloadInfo;
     private final File mDownloadDir;
