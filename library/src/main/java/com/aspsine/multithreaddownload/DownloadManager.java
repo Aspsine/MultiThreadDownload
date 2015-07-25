@@ -94,7 +94,11 @@ public class DownloadManager {
             request = new DownloadRequest(downloadInfo, mConfig.downloadDir, mDBManager, mExecutorService, new DownloadStatus(), mDelivery);
             mDownloadRequestMap.put(tag, request);
         }
-        request.start(callBack);
+        if (!request.isStarted()) {
+            request.start(callBack);
+        }else {
+            Log.i("DownloadManager", fileName + " : has started!");
+        }
     }
 
     public void pause(String url) {
@@ -114,7 +118,7 @@ public class DownloadManager {
         List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(url);
         DownloadInfo downloadInfo = null;
         if (!threadInfos.isEmpty()) {
-            
+
         }
         return downloadInfo;
     }

@@ -55,6 +55,16 @@ public class MultiDownloadTask implements DownloadTask {
     }
 
     @Override
+    public boolean isPaused() {
+        return mPause;
+    }
+
+    @Override
+    public boolean isCanceled() {
+        return mCancel;
+    }
+
+    @Override
     public void run() {
         this.mPause = false;
         this.mCancel = false;
@@ -84,7 +94,7 @@ public class MultiDownloadTask implements DownloadTask {
                 inputStream = new BufferedInputStream(httpConn.getInputStream());
                 byte[] buffer = new byte[1024 * 4];
                 int len = -1;
-                while ((len = inputStream.read(buffer)) != -1 && !mCancel && !mPause) {
+                while ((len = inputStream.read(buffer)) != -1) {
                     raf.write(buffer, 0, len);
                     mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
                     L.i("MultiDownloadTask", "[Downloading] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
@@ -92,31 +102,47 @@ public class MultiDownloadTask implements DownloadTask {
                         mDownloadInfo.setFinished(mDownloadInfo.getFinished() + len);
                         mOnDownloadListener.onProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
                     }
-                }
-                if (mCancel) {
-                    // cancel
-                    L.i("MultiDownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                } else if (mPause) {
-                    // pause
-                    L.i("MultiDownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                    synchronized (mOnDownloadListener) {
-                        mDBManager.update(mThreadInfo.getUrl(), mThreadInfo.getId(), mThreadInfo.getFinished());
+                    if (mCancel) {
+                        // cancel
+                        L.i("MultiDownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                        synchronized (mOnDownloadListener){
+                            mOnDownloadListener.onCancel();
+                        }
+                        return;
+                    } else if (mPause) {
+                        // pause
+                        L.i("MultiDownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                        synchronized (mOnDownloadListener) {
+                            mDBManager.update(mThreadInfo.getUrl(), mThreadInfo.getId(), mThreadInfo.getFinished());
+                            mOnDownloadListener.onPause();
+                        }
+                        return;
                     }
-                } else if (!mCancel && !mPause) {
+                }
+                if (!mCancel && !mPause) {
                     // complete
                     L.i("MultiDownloadTask", "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     mFinished = true;
                     synchronized (mOnDownloadListener) {
                         mOnDownloadListener.onComplete();
                     }
+                    return;
                 }
             } else if (responseCode == HttpURLConnection.HTTP_OK) {
                 throw new DownloadException("Don't support range download");
             }
         } catch (IOException e) {
-            mOnDownloadListener.onFail(new DownloadException(e));
+            mPause =true;
+            mCancel = true;
+            synchronized (mOnDownloadListener){
+                mOnDownloadListener.onFail(new DownloadException(e));
+            }
         } catch (DownloadException e) {
-            mOnDownloadListener.onFail(new DownloadException(e));
+            mPause = true;
+            mCancel = true;
+            synchronized (mOnDownloadListener){
+                mOnDownloadListener.onFail(new DownloadException(e));
+            }
         } finally {
             httpConn.disconnect();
             try {

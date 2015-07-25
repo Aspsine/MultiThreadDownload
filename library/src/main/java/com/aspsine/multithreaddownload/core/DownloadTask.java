@@ -10,6 +10,10 @@ public interface DownloadTask extends Runnable {
 
         void onComplete();
 
+        void onPause();
+
+        void onCancel();
+
         void onFail(DownloadException de);
     }
 
@@ -18,6 +22,10 @@ public interface DownloadTask extends Runnable {
     void pause();
 
     boolean isFinished();
+
+    boolean isPaused();
+
+    boolean isCanceled();
 
     @Override
     void run();

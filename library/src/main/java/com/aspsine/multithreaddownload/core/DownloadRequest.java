@@ -1,6 +1,7 @@
 package com.aspsine.multithreaddownload.core;
 
 
+import android.util.Log;
 
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
@@ -31,6 +32,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
 
     private List<DownloadTask> mDownloadTasks;
 
+    private boolean mStart = false;
     private boolean mIsPause = false;
     private boolean mCancel = false;
 
@@ -44,6 +46,7 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
     }
 
     public void start(CallBack callBack) {
+        mStart = true;
         mIsPause = false;
         mCancel = false;
         mDownloadInfo.setFinished(0);
@@ -57,27 +60,45 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
         if (ListUtils.isEmpty(mDownloadTasks)) {
             return;
         }
-        mIsPause = true;
         for (DownloadTask task : mDownloadTasks) {
             task.pause();
         }
-        mDelivery.postPause(mDownloadStatus);
     }
 
     public void cancel() {
         if (ListUtils.isEmpty(mDownloadTasks)) {
             return;
         }
-        mCancel = true;
         for (DownloadTask task : mDownloadTasks) {
             task.cancel();
         }
-        mDBManager.delete(mDownloadInfo.getUrl());
-        File file = new File(mDownloadDir, mDownloadInfo.getName());
-        if (file.exists() && file.isFile()) {
-            file.delete();
+    }
+
+    public boolean isStarted() {
+        return mStart;
+    }
+
+    private boolean isAllCanceled() {
+        boolean allCanceled = true;
+        for (DownloadTask task : mDownloadTasks) {
+            if (task.isCanceled()) {
+                allCanceled = false;
+                break;
+            }
         }
-        mDelivery.postCancel(mDownloadStatus);
+        return allCanceled;
+    }
+
+    private boolean isAllPaused() {
+        boolean allPaused = true;
+        for (DownloadTask task : mDownloadTasks) {
+            if (!task.isPaused()) {
+                allPaused = false;
+                break;
+            }
+        }
+        Log.i("isAllPaused", "isAllPaused = " + allPaused);
+        return allPaused;
     }
 
     /**
@@ -169,11 +190,13 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
 
     @Override
     public void onConnectedFail(DownloadException de) {
+        mStart = false;
         mDelivery.postFailure(de, mDownloadStatus);
     }
 
     @Override
     public void onProgress(int finished, int length) {
+        mStart = true;
         mDelivery.postProgressUpdate(finished, length, mDownloadStatus);
     }
 
@@ -182,13 +205,40 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
         L.i("onComplete", "onComplete");
         if (isAllFinished()) {
             mDBManager.delete(mDownloadInfo.getUrl());
+            mStart = false;
             mDelivery.postComplete(mDownloadStatus);
         }
     }
 
     @Override
-    public void onFail(DownloadException de) {
+    public void onPause() {
+        if (isAllPaused()) {
+            mIsPause = true;
+            mStart = false;
+            mDelivery.postPause(mDownloadStatus);
+        }
+    }
 
+    @Override
+    public void onCancel() {
+        if(isAllCanceled()){
+            mStart = false;
+            mCancel = true;
+            mDBManager.delete(mDownloadInfo.getUrl());
+            File file = new File(mDownloadDir, mDownloadInfo.getName());
+            if (file.exists() && file.isFile()) {
+                file.delete();
+            }
+            mDelivery.postCancel(mDownloadStatus);
+        }
+    }
+
+    @Override
+    public void onFail(DownloadException de) {
+        for (DownloadTask task : mDownloadTasks) {
+            task.cancel();
+        }
+        mStart = false;
         mDelivery.postFailure(de, mDownloadStatus);
     }
 }

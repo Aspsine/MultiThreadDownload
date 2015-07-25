@@ -16,7 +16,6 @@ import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
-import com.aspsine.multithreaddownload.util.L;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -73,11 +72,18 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
 
     @Override
     public void onItemClick(View v, final int position, final AppInfo appInfo) {
+        if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING){
+            if (isCurrentListViewItemVisible(position)) {
+                DownloadManager.getInstance().pause(appInfo.getUrl());
+            }
+            return;
+        }
 
         appInfo.setStatus(AppInfo.STATUS_CONNECTING);
         if (isCurrentListViewItemVisible(position)) {
             ListViewAdapter.ViewHolder holder = getViewHolder(position);
             holder.tvStatus.setText(appInfo.getStatusText());
+            holder.btnDownload.setText(appInfo.getButtonText());
         }
 
         DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), new CallBack() {
@@ -90,6 +96,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);
                     holder.tvDownloadPerSize.setText(downloadPerSize);
                     holder.tvStatus.setText(appInfo.getStatusText());
+                    holder.btnDownload.setText(appInfo.getButtonText());
                 }
             }
 
@@ -104,7 +111,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                     holder.tvDownloadPerSize.setText(downloadPerSize);
                     holder.progressBar.setProgress(progress);
                     holder.tvStatus.setText(appInfo.getStatusText());
-                    L.i("progressBar", "progress：" + progress);
+                    holder.btnDownload.setText(appInfo.getButtonText());
                 }
             }
 
@@ -114,6 +121,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                 if (isCurrentListViewItemVisible(position)) {
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);
                     holder.tvStatus.setText(appInfo.getStatusText());
+                    holder.btnDownload.setText(appInfo.getButtonText());
                 }
             }
 
@@ -123,6 +131,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                 if (isCurrentListViewItemVisible(position)) {
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);
                     holder.tvStatus.setText(appInfo.getStatusText());
+                    holder.btnDownload.setText(appInfo.getButtonText());
                 }
             }
 
@@ -134,6 +143,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);
                     holder.tvStatus.setText(appInfo.getStatusText());
                     holder.tvDownloadPerSize.setText("");
+                    holder.btnDownload.setText(appInfo.getButtonText());
                 }
             }
 
@@ -145,6 +155,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);
                     holder.tvStatus.setText(appInfo.getStatusText());
                     holder.tvDownloadPerSize.setText("");
+                    holder.btnDownload.setText(appInfo.getButtonText());
                 }
                 e.printStackTrace();
             }
