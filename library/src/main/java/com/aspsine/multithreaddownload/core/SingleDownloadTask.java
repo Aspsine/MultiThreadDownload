@@ -1,7 +1,6 @@
 package com.aspsine.multithreaddownload.core;
 
 
-
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
 import com.aspsine.multithreaddownload.util.IOCloseUtils;
@@ -88,14 +87,18 @@ public class SingleDownloadTask implements DownloadTask {
                         L.i("SingleDownloadTask", "[Downloading] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished() + "; length = " + mDownloadInfo.getLength());
                         mOnDownloadListener.onProgress(mThreadInfo.getFinished(), mDownloadInfo.getLength());
                     }
+
+                    if (mCancel) {
+                        // cancel
+                        L.i("SingleDownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                        mOnDownloadListener.onCancel();
+                    } else if (mPause) {
+                        // pause
+                        L.i("SingleDownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                        mOnDownloadListener.onPause();
+                    }
                 }
-                if (mCancel) {
-                    // cancel
-                    L.i("SingleDownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                } else if (mPause) {
-                    // pause
-                    L.i("SingleDownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                } else if (!mCancel && !mPause) {
+                if (!mCancel && !mPause) {
                     // complete
                     L.i("SingleDownloadTask", "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     mFinished = true;
@@ -105,6 +108,7 @@ public class SingleDownloadTask implements DownloadTask {
                 }
             }
         } catch (IOException e) {
+            mPause = true;
             mOnDownloadListener.onFail(new DownloadException(e));
         } finally {
             httpConn.disconnect();
