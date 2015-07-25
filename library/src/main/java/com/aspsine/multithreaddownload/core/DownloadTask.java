@@ -10,6 +10,10 @@ public interface DownloadTask extends Runnable {
 
         void onComplete();
 
+        void onPause();
+
+        void onCancel();
+
         void onFail(DownloadException de);
     }
 

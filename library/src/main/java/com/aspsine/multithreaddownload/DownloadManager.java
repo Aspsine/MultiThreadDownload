@@ -96,6 +96,8 @@ public class DownloadManager {
         }
         if (!request.isStarted()) {
             request.start(callBack);
+        }else {
+            Log.i("DownloadManager", fileName + " : has started!");
         }
     }
 

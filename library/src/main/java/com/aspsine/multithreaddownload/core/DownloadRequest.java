@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutorService;
  */
 public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDownloadTask.OnDownloadListener {
 
-    private static final int threadNum = 3;
+    private static final int threadNum = 1;
 
     private final DownloadInfo mDownloadInfo;
     private final File mDownloadDir;
@@ -60,13 +60,8 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
         if (ListUtils.isEmpty(mDownloadTasks)) {
             return;
         }
-        mIsPause = true;
-        mStart = false;
         for (DownloadTask task : mDownloadTasks) {
             task.pause();
-        }
-        if (isAllPaused()) {
-            mDelivery.postPause(mDownloadStatus);
         }
     }
 
@@ -74,17 +69,9 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
         if (ListUtils.isEmpty(mDownloadTasks)) {
             return;
         }
-        mCancel = true;
-        mStart = false;
         for (DownloadTask task : mDownloadTasks) {
             task.cancel();
         }
-        mDBManager.delete(mDownloadInfo.getUrl());
-        File file = new File(mDownloadDir, mDownloadInfo.getName());
-        if (file.exists() && file.isFile()) {
-            file.delete();
-        }
-        mDelivery.postCancel(mDownloadStatus);
     }
 
     public boolean isStarted() {
@@ -220,6 +207,29 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
             mDBManager.delete(mDownloadInfo.getUrl());
             mStart = false;
             mDelivery.postComplete(mDownloadStatus);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        if (isAllPaused()) {
+            mIsPause = true;
+            mStart = false;
+            mDelivery.postPause(mDownloadStatus);
+        }
+    }
+
+    @Override
+    public void onCancel() {
+        if(isAllCanceled()){
+            mStart = false;
+            mCancel = true;
+            mDBManager.delete(mDownloadInfo.getUrl());
+            File file = new File(mDownloadDir, mDownloadInfo.getName());
+            if (file.exists() && file.isFile()) {
+                file.delete();
+            }
+            mDelivery.postCancel(mDownloadStatus);
         }
     }
 
