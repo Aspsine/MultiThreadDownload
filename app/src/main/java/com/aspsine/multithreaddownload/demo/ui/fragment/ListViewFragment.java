@@ -2,6 +2,7 @@ package com.aspsine.multithreaddownload.demo.ui.fragment;
 
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 
@@ -69,9 +71,14 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
 
     private static final DecimalFormat DF = new DecimalFormat("0.00");
 
+    /**
+     * Dir: /Download
+     */
+    private final File dir = new File(Environment.getExternalStorageDirectory(), "Download");
 
     @Override
     public void onItemClick(View v, final int position, final AppInfo appInfo) {
+
         if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING) {
             if (isCurrentListViewItemVisible(position)) {
                 DownloadManager.getInstance().pause(appInfo.getUrl());
@@ -79,7 +86,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
             return;
         }
 
-        DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), null, new CallBack() {
+        DownloadManager.getInstance().download(appInfo.getName() + ".apk", appInfo.getUrl(), dir, new CallBack() {
 
             @Override
             public void onDownloadStart() {
