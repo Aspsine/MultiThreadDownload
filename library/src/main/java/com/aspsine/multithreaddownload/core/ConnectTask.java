@@ -14,22 +14,25 @@ import java.net.URL;
  */
 public class ConnectTask implements Runnable {
     private DownloadInfo mDownloadInfo;
-    private OnConnectedListener mOnConnectedListener;
+    private OnConnectListener mOnConnectListener;
 
-    interface OnConnectedListener {
+    public interface OnConnectListener {
+        void onStart();
+
         void onConnected(DownloadInfo downloadInfo);
 
-        void onConnectedFail(DownloadException de);
+        void onConnectFail(DownloadException de);
     }
 
-    public ConnectTask(DownloadInfo downloadInfo, OnConnectedListener listener) {
+    public ConnectTask(DownloadInfo downloadInfo, OnConnectListener listener) {
         this.mDownloadInfo = downloadInfo;
-        this.mOnConnectedListener = listener;
+        this.mOnConnectListener = listener;
     }
 
     @Override
     public void run() {
         L.i("ThreadInfo", "InitThread = " + this.hashCode());
+        mOnConnectListener.onStart();
         HttpURLConnection httpConn = null;
         try {
             URL url = new URL(mDownloadInfo.getUrl());
@@ -52,12 +55,12 @@ public class ConnectTask implements Runnable {
             } else {
                 mDownloadInfo.setLength(length);
                 mDownloadInfo.setIsSupportRange(isSupportRange);
-                mOnConnectedListener.onConnected(mDownloadInfo);
+                mOnConnectListener.onConnected(mDownloadInfo);
             }
         } catch (IOException e) {
-            mOnConnectedListener.onConnectedFail(new DownloadException(e));
+            mOnConnectListener.onConnectFail(new DownloadException(e));
         } catch (DownloadException e) {
-            mOnConnectedListener.onConnectedFail(new DownloadException(e));
+            mOnConnectListener.onConnectFail(new DownloadException(e));
         } finally {
             httpConn.disconnect();
         }

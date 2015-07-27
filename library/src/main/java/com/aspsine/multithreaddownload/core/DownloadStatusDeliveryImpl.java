@@ -23,6 +23,12 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
     }
 
     @Override
+    public void postStart(DownloadStatus status) {
+        status.setStatus(DownloadStatus.STATUS_STAT);
+        mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
+    }
+
+    @Override
     public void postConnected(int length, boolean isRangeSupport, DownloadStatus status) {
         status.setStatus(DownloadStatus.STATUS_CONNECTED);
         status.setLength(length);
@@ -76,13 +82,16 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
         @Override
         public void run() {
             switch (mDownloadStatus.getStatus()) {
+                case DownloadStatus.STATUS_STAT:
+                    mCallBack.onDownloadStart();
+                    break;
                 case DownloadStatus.STATUS_CONNECTED:
                     mCallBack.onConnected(mDownloadStatus.getLength(), mDownloadStatus.isRangeSupport());
                     break;
                 case DownloadStatus.STATUS_PROGRESS:
                     final int finished = mDownloadStatus.getFinished();
                     final int length = mDownloadStatus.getLength();
-                    final int percent = (int)((long)finished * 100 / length);
+                    final int percent = (int) ((long) finished * 100 / length);
                     mCallBack.onProgress(finished, length, percent);
                     break;
                 case DownloadStatus.STATUS_COMPLETE:

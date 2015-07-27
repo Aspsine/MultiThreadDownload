@@ -3,154 +3,62 @@ package com.aspsine.multithreaddownload.core;
 /**
  * Created by Aspsine on 2015/7/20.
  */
+
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
-import com.aspsine.multithreaddownload.util.IOCloseUtils;
-import com.aspsine.multithreaddownload.util.L;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * download thread
  */
-public class MultiDownloadTask implements DownloadTask {
-    private ThreadInfo mThreadInfo;
+public class MultiDownloadTask extends AbsDownloadTask {
+
     private DataBaseManager mDBManager;
-    private File mDownloadDir;
-    private DownloadInfo mDownloadInfo;
-    private OnDownloadListener mOnDownloadListener;
 
-    private boolean mCancel;
-    private boolean mPause;
-    private boolean mFinished;
+    public MultiDownloadTask(DownloadInfo downloadInfo, ThreadInfo threadInfo, DataBaseManager dbManager, OnDownloadListener listener) {
 
-    public MultiDownloadTask(ThreadInfo threadInfo, DownloadInfo downloadInfo, File downloadDir, DataBaseManager dbManager, OnDownloadListener listener) {
-        this.mThreadInfo = threadInfo;
-        this.mDownloadInfo = downloadInfo;
-        this.mDownloadDir = downloadDir;
+        super(downloadInfo, threadInfo, listener);
         this.mDBManager = dbManager;
-        this.mOnDownloadListener = listener;
     }
 
     @Override
-    public void cancel() {
-        mCancel = true;
-    }
-
-    @Override
-    public void pause() {
-        mPause = true;
-    }
-
-    @Override
-    public boolean isFinished() {
-        return mFinished;
-    }
-
-    @Override
-    public boolean isPaused() {
-        return mPause;
-    }
-
-    @Override
-    public boolean isCanceled() {
-        return mCancel;
-    }
-
-    @Override
-    public void run() {
-        this.mPause = false;
-        this.mCancel = false;
-        synchronized (mDBManager) {
-            if (!mDBManager.exists(mThreadInfo.getUrl(), mThreadInfo.getId())) {
-                mDBManager.insert(mThreadInfo);
-            }
+    protected void insertIntoDB(ThreadInfo info) {
+        if (!mDBManager.exists(info.getUrl(), info.getId())) {
+            mDBManager.insert(info);
         }
-        HttpURLConnection httpConn = null;
-        InputStream inputStream = null;
-        RandomAccessFile raf = null;
-        try {
-            URL url = new URL(mThreadInfo.getUrl());
-            httpConn = (HttpURLConnection) url.openConnection();
-            httpConn.setConnectTimeout(5 * 1000);
-            httpConn.setRequestMethod("GET");
+    }
 
-            int start = mThreadInfo.getStart() + mThreadInfo.getFinished();
-            int end = mThreadInfo.getEnd();
-            httpConn.setRequestProperty("Range", "bytes=" + start + "-" + end);
+    @Override
+    protected void updateDBProgress(ThreadInfo info) {
+        mDBManager.update(info.getUrl(), info.getId(), info.getFinished());
+    }
 
-            File file = new File(mDownloadDir, mDownloadInfo.getName());
-            raf = new RandomAccessFile(file, "rwd");
-            raf.seek(start);
-            final int responseCode = httpConn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_PARTIAL) {
-                inputStream = new BufferedInputStream(httpConn.getInputStream());
-                byte[] buffer = new byte[1024 * 4];
-                int len = -1;
-                while ((len = inputStream.read(buffer)) != -1) {
-                    raf.write(buffer, 0, len);
-                    mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
-                    L.i("MultiDownloadTask", "[Downloading] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                    synchronized (mOnDownloadListener) {
-                        mDownloadInfo.setFinished(mDownloadInfo.getFinished() + len);
-                        mOnDownloadListener.onProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
-                    }
-                    if (mCancel) {
-                        // cancel
-                        L.i("MultiDownloadTask", "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                        synchronized (mOnDownloadListener){
-                            mOnDownloadListener.onCancel();
-                        }
-                        return;
-                    } else if (mPause) {
-                        // pause
-                        L.i("MultiDownloadTask", "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                        synchronized (mOnDownloadListener) {
-                            mDBManager.update(mThreadInfo.getUrl(), mThreadInfo.getId(), mThreadInfo.getFinished());
-                            mOnDownloadListener.onPause();
-                        }
-                        return;
-                    }
-                }
-                if (!mCancel && !mPause) {
-                    // complete
-                    L.i("MultiDownloadTask", "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                    mFinished = true;
-                    synchronized (mOnDownloadListener) {
-                        mOnDownloadListener.onComplete();
-                    }
-                    return;
-                }
-            } else if (responseCode == HttpURLConnection.HTTP_OK) {
-                throw new DownloadException("Don't support range download");
-            }
-        } catch (IOException e) {
-            mPause =true;
-            mCancel = true;
-            synchronized (mOnDownloadListener){
-                mOnDownloadListener.onFail(new DownloadException(e));
-            }
-        } catch (DownloadException e) {
-            mPause = true;
-            mCancel = true;
-            synchronized (mOnDownloadListener){
-                mOnDownloadListener.onFail(new DownloadException(e));
-            }
-        } finally {
-            httpConn.disconnect();
-            try {
-                IOCloseUtils.close(inputStream);
-                IOCloseUtils.close(raf);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    @Override
+    protected Map<String, String> getHttpHeaders(ThreadInfo info) {
+        Map<String, String> headers = new HashMap<>();
+        int start = info.getStart() + info.getFinished();
+        int end = info.getEnd();
+        headers.put("Range", "bytes=" + start + "-" + end);
+        return headers;
+    }
+
+    @Override
+    protected RandomAccessFile getFile(ThreadInfo threadInfo, DownloadInfo downloadInfo) throws IOException {
+        File file = new File(downloadInfo.getDir(), downloadInfo.getName());
+        RandomAccessFile raf = new RandomAccessFile(file, "rwd");
+        int start = threadInfo.getStart() + threadInfo.getFinished();
+        raf.seek(start);
+        return raf;
+    }
+
+    @Override
+    protected String getTag() {
+        return this.getClass().getSimpleName();
     }
 }

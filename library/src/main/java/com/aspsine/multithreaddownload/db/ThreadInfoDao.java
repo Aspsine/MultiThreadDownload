@@ -28,7 +28,7 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
         db.execSQL("drop table if exists " + TABLE_NAME);
     }
 
-    public synchronized void insert(ThreadInfo info) {
+    public void insert(ThreadInfo info) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("insert into "
                         + TABLE_NAME
@@ -36,7 +36,7 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
                 new Object[]{info.getId(), info.getUrl(), info.getStart(), info.getEnd(), info.getFinished()});
     }
 
-    public synchronized void delete(String url) {
+    public void delete(String url) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("delete from "
                         + TABLE_NAME
@@ -44,7 +44,7 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
                 new Object[]{url});
     }
 
-    public synchronized void update(String url, int threadId, int finished) {
+    public void update(String url, int threadId, int finished) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("update "
                         + TABLE_NAME
@@ -74,7 +74,7 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
         return list;
     }
 
-    public synchronized boolean exists(String url, int threadId) {
+    public boolean exists(String url, int threadId) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("select * from "
                         + TABLE_NAME

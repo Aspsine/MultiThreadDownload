@@ -2,6 +2,7 @@ package com.aspsine.multithreaddownload.demo.ui.fragment;
 
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 
@@ -69,32 +71,38 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
 
     private static final DecimalFormat DF = new DecimalFormat("0.00");
 
+    /**
+     * Dir: /Download
+     */
+    private final File dir = new File(Environment.getExternalStorageDirectory(), "Download");
 
     @Override
     public void onItemClick(View v, final int position, final AppInfo appInfo) {
-        if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING){
+
+        if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING) {
             if (isCurrentListViewItemVisible(position)) {
                 DownloadManager.getInstance().pause(appInfo.getUrl());
             }
             return;
         }
 
-        appInfo.setStatus(AppInfo.STATUS_CONNECTING);
-        if (isCurrentListViewItemVisible(position)) {
-            ListViewAdapter.ViewHolder holder = getViewHolder(position);
-            holder.tvStatus.setText(appInfo.getStatusText());
-            holder.btnDownload.setText(appInfo.getButtonText());
-        }
+        DownloadManager.getInstance().download(appInfo.getName() + ".apk", appInfo.getUrl(), dir, new CallBack() {
 
-        DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), new CallBack() {
+            @Override
+            public void onDownloadStart() {
+                appInfo.setStatus(AppInfo.STATUS_CONNECTING);
+                if (isCurrentListViewItemVisible(position)) {
+                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                    holder.tvStatus.setText(appInfo.getStatusText());
+                    holder.btnDownload.setText(appInfo.getButtonText());
+                }
+            }
+
             @Override
             public void onConnected(int total, boolean isRangeSupport) {
-                String downloadPerSize = getDownloadPerSize(0, total);
-                appInfo.setDownloadPerSize(downloadPerSize);
                 appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
                 if (isCurrentListViewItemVisible(position)) {
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    holder.tvDownloadPerSize.setText(downloadPerSize);
                     holder.tvStatus.setText(appInfo.getStatusText());
                     holder.btnDownload.setText(appInfo.getButtonText());
                 }
