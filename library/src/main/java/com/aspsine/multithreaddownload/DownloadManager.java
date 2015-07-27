@@ -13,6 +13,7 @@ import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
 
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ public class DownloadManager {
      * @param url
      * @param callBack
      */
-    public void download(String fileName, String url, CallBack callBack) {
+    public void download(String fileName, String url, File dir, CallBack callBack) {
         if (mConfig == null) {
             throw new RuntimeException("Please config first!");
         }
@@ -90,13 +91,16 @@ public class DownloadManager {
             request = mDownloadRequestMap.get(tag);
         } else {
             Log.i("DownloadManager", "use new request");
-            downloadInfo = new DownloadInfo(fileName, url);
-            request = new DownloadRequest(downloadInfo, mConfig.downloadDir, mDBManager, mExecutorService, new DownloadStatus(), mDelivery);
+            if (dir == null) {
+                dir = mConfig.downloadDir;
+            }
+            downloadInfo = new DownloadInfo(fileName, url, dir);
+            request = new DownloadRequest(downloadInfo, mDBManager, mExecutorService, new DownloadStatus(), mDelivery);
             mDownloadRequestMap.put(tag, request);
         }
         if (!request.isStarted()) {
             request.start(callBack);
-        }else {
+        } else {
             Log.i("DownloadManager", fileName + " : has started!");
         }
     }

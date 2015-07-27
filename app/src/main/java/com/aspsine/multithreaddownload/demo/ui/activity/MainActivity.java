@@ -40,12 +40,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (v.getId() == R.id.btnStart) {
             a = 0;
             b = 0;
-            DownloadManager.getInstance().download("CIQuestionnaire_android.apk", DOWNLOAD_URL, this);
+            DownloadManager.getInstance().download("CIQuestionnaire_android.apk", DOWNLOAD_URL, null, this);
         } else if (v.getId() == R.id.btnPause) {
             DownloadManager.getInstance().pause(DOWNLOAD_URL);
         } else if (v.getId() == R.id.btnCancel) {
             DownloadManager.getInstance().cancel(DOWNLOAD_URL);
         }
+    }
+
+    @Override
+    public void onDownloadStart() {
+
     }
 
     @Override

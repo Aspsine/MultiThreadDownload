@@ -24,15 +24,15 @@ public class DataBaseManager {
         mThreadInfoDao = new ThreadInfoDao(context);
     }
 
-    public void insert(ThreadInfo threadInfo) {
+    public synchronized void insert(ThreadInfo threadInfo) {
         mThreadInfoDao.insert(threadInfo);
     }
 
-    public void delete(String url) {
+    public synchronized void delete(String url) {
         mThreadInfoDao.delete(url);
     }
 
-    public void update(String url, int threadId, int finished) {
+    public synchronized void update(String url, int threadId, int finished) {
         mThreadInfoDao.update(url, threadId, finished);
     }
 

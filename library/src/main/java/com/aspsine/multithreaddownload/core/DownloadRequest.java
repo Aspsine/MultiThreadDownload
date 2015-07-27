@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Created by Aspsine on 2015/4/20.
  */
-public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDownloadTask.OnDownloadListener {
+public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadTask.OnDownloadListener {
 
     private static final int threadNum = 3;
 
@@ -32,23 +32,92 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
 
     private List<DownloadTask> mDownloadTasks;
 
-    private boolean mStart = false;
-    private boolean mIsPause = false;
-    private boolean mCancel = false;
+    private int mStatus = -1;
 
-    public DownloadRequest(DownloadInfo downloadInfo, File downloadDir, DataBaseManager dbManager, ExecutorService executorService, DownloadStatus downloadStatus, DownloadStatusDelivery delivery) {
+    public DownloadRequest(DownloadInfo downloadInfo, DataBaseManager dbManager, ExecutorService executorService, DownloadStatus downloadStatus, DownloadStatusDelivery delivery) {
         this.mDownloadInfo = downloadInfo;
-        this.mDownloadDir = downloadDir;
         this.mExecutorService = executorService;
         this.mDownloadStatus = downloadStatus;
         this.mDelivery = delivery;
         this.mDBManager = dbManager;
+
+        this.mDownloadDir = mDownloadInfo.getDir();
+    }
+
+    @Override
+    public void onStart() {
+        mStatus = DownloadStatus.STATUS_STAT;
+        mDelivery.postStart(mDownloadStatus);
+    }
+
+    @Override
+    public void onConnected(DownloadInfo downloadInfo) {
+        mStatus = DownloadStatus.STATUS_CONNECTED;
+        mDelivery.postConnected(downloadInfo.getLength(), downloadInfo.isSupportRange(), mDownloadStatus);
+        if (!mDownloadDir.exists()) {
+            if (FileUtils.isSDMounted()) {
+                mDownloadDir.mkdir();
+            } else {
+                mDelivery.postFailure(new DownloadException("can't make dir!"), mDownloadStatus);
+                return;
+            }
+        }
+
+        download(downloadInfo);
+    }
+
+    @Override
+    public void onConnectFail(DownloadException de) {
+        mStatus = DownloadStatus.STATUS_FAILURE;
+        mDelivery.postFailure(de, mDownloadStatus);
+    }
+
+    @Override
+    public void onProgress(int finished, int length) {
+        mStatus = DownloadStatus.STATUS_PROGRESS;
+        mDelivery.postProgressUpdate(finished, length, mDownloadStatus);
+    }
+
+    @Override
+    public void onComplete() {
+        L.i("onComplete", "onComplete");
+        if (isAllFinished()) {
+            mDBManager.delete(mDownloadInfo.getUrl());
+            mStatus = DownloadStatus.STATUS_COMPLETE;
+            mDelivery.postComplete(mDownloadStatus);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        if (isAllPaused()) {
+            mStatus = DownloadStatus.STATUS_PAUSE;
+            mDelivery.postPause(mDownloadStatus);
+        }
+    }
+
+    @Override
+    public void onCancel() {
+        if (isAllCanceled()) {
+            mDBManager.delete(mDownloadInfo.getUrl());
+            File file = new File(mDownloadDir, mDownloadInfo.getName());
+            if (file.exists() && file.isFile()) {
+                file.delete();
+            }
+            mStatus = DownloadStatus.STATUS_CANCEL;
+            mDelivery.postCancel(mDownloadStatus);
+        }
+    }
+
+    @Override
+    public void onFailure(DownloadException de) {
+        if (isAllFailure()) {
+            mStatus = DownloadStatus.STATUS_FAILURE;
+            mDelivery.postFailure(de, mDownloadStatus);
+        }
     }
 
     public void start(CallBack callBack) {
-        mStart = true;
-        mIsPause = false;
-        mCancel = false;
         mDownloadInfo.setFinished(0);
         mDownloadInfo.setLength(0);
         mDownloadStatus.setCallBack(callBack);
@@ -74,19 +143,10 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
         }
     }
 
-    public boolean isStarted() {
-        return mStart;
-    }
-
-    private boolean isAllCanceled() {
-        boolean allCanceled = true;
-        for (DownloadTask task : mDownloadTasks) {
-            if (task.isCanceled()) {
-                allCanceled = false;
-                break;
-            }
-        }
-        return allCanceled;
+    public synchronized boolean isStarted() {
+        return mStatus == DownloadStatus.STATUS_STAT
+                || mStatus == DownloadStatus.STATUS_CONNECTED
+                || mStatus == DownloadStatus.STATUS_PROGRESS;
     }
 
     private boolean isAllPaused() {
@@ -101,6 +161,17 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
         return allPaused;
     }
 
+    private boolean isAllCanceled() {
+        boolean allCanceled = true;
+        for (DownloadTask task : mDownloadTasks) {
+            if (task.isCanceled()) {
+                allCanceled = false;
+                break;
+            }
+        }
+        return allCanceled;
+    }
+
     /**
      * check if all threads finished download
      *
@@ -109,12 +180,23 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
     private boolean isAllFinished() {
         boolean allFinished = true;
         for (DownloadTask task : mDownloadTasks) {
-            if (!task.isFinished()) {
+            if (!task.isComplete()) {
                 allFinished = false;
                 break;
             }
         }
         return allFinished;
+    }
+
+    private boolean isAllFailure() {
+        boolean allFailure = true;
+        for (DownloadTask task : mDownloadTasks) {
+            if (!task.isFailure()) {
+                allFailure = false;
+                break;
+            }
+        }
+        return allFailure;
     }
 
     private void download(DownloadInfo downloadInfo) {
@@ -130,13 +212,13 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
             mDownloadInfo.setFinished(finished);
             // init tasks
             for (ThreadInfo threadInfo : threadInfos) {
-                DownloadTask task = new MultiDownloadTask(threadInfo, downloadInfo, mDownloadDir, mDBManager, this);
+                DownloadTask task = new MultiDownloadTask(downloadInfo, threadInfo, mDBManager, this);
                 mDownloadTasks.add(task);
             }
         } else {
             //single thread
             ThreadInfo threadInfo = getSingleThreadInfo();
-            DownloadTask task = new SingleDownloadTask(threadInfo, downloadInfo, mDownloadDir, this);
+            DownloadTask task = new SingleDownloadTask(downloadInfo, threadInfo, this);
             mDownloadTasks.add(task);
         }
         // start tasks
@@ -172,73 +254,5 @@ public class DownloadRequest implements ConnectTask.OnConnectedListener, MultiDo
         return threadInfo;
     }
 
-    @Override
-    public void onConnected(DownloadInfo downloadInfo) {
-        mDelivery.postConnected(downloadInfo.getLength(), downloadInfo.isSupportRange(), mDownloadStatus);
-        if (!mDownloadDir.exists()) {
-            if (FileUtils.isSDMounted()) {
-                mDownloadDir.mkdir();
-            } else {
-                mDelivery.postFailure(new DownloadException("can't make dir!"), mDownloadStatus);
-                return;
-            }
-        }
-        if (!(mIsPause || mCancel)) {
-            download(downloadInfo);
-        }
-    }
 
-    @Override
-    public void onConnectedFail(DownloadException de) {
-        mStart = false;
-        mDelivery.postFailure(de, mDownloadStatus);
-    }
-
-    @Override
-    public void onProgress(int finished, int length) {
-        mStart = true;
-        mDelivery.postProgressUpdate(finished, length, mDownloadStatus);
-    }
-
-    @Override
-    public void onComplete() {
-        L.i("onComplete", "onComplete");
-        if (isAllFinished()) {
-            mDBManager.delete(mDownloadInfo.getUrl());
-            mStart = false;
-            mDelivery.postComplete(mDownloadStatus);
-        }
-    }
-
-    @Override
-    public void onPause() {
-        if (isAllPaused()) {
-            mIsPause = true;
-            mStart = false;
-            mDelivery.postPause(mDownloadStatus);
-        }
-    }
-
-    @Override
-    public void onCancel() {
-        if(isAllCanceled()){
-            mStart = false;
-            mCancel = true;
-            mDBManager.delete(mDownloadInfo.getUrl());
-            File file = new File(mDownloadDir, mDownloadInfo.getName());
-            if (file.exists() && file.isFile()) {
-                file.delete();
-            }
-            mDelivery.postCancel(mDownloadStatus);
-        }
-    }
-
-    @Override
-    public void onFail(DownloadException de) {
-        for (DownloadTask task : mDownloadTasks) {
-            task.cancel();
-        }
-        mStart = false;
-        mDelivery.postFailure(de, mDownloadStatus);
-    }
 }

@@ -72,29 +72,30 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
 
     @Override
     public void onItemClick(View v, final int position, final AppInfo appInfo) {
-        if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING){
+        if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING) {
             if (isCurrentListViewItemVisible(position)) {
                 DownloadManager.getInstance().pause(appInfo.getUrl());
             }
             return;
         }
 
-        appInfo.setStatus(AppInfo.STATUS_CONNECTING);
-        if (isCurrentListViewItemVisible(position)) {
-            ListViewAdapter.ViewHolder holder = getViewHolder(position);
-            holder.tvStatus.setText(appInfo.getStatusText());
-            holder.btnDownload.setText(appInfo.getButtonText());
-        }
+        DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), null, new CallBack() {
 
-        DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), new CallBack() {
+            @Override
+            public void onDownloadStart() {
+                appInfo.setStatus(AppInfo.STATUS_CONNECTING);
+                if (isCurrentListViewItemVisible(position)) {
+                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                    holder.tvStatus.setText(appInfo.getStatusText());
+                    holder.btnDownload.setText(appInfo.getButtonText());
+                }
+            }
+
             @Override
             public void onConnected(int total, boolean isRangeSupport) {
-                String downloadPerSize = getDownloadPerSize(0, total);
-                appInfo.setDownloadPerSize(downloadPerSize);
                 appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
                 if (isCurrentListViewItemVisible(position)) {
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    holder.tvDownloadPerSize.setText(downloadPerSize);
                     holder.tvStatus.setText(appInfo.getStatusText());
                     holder.btnDownload.setText(appInfo.getButtonText());
                 }

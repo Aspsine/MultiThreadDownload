@@ -7,6 +7,8 @@ import com.aspsine.multithreaddownload.core.DownloadException;
  */
 public interface CallBack {
 
+    void onDownloadStart();
+
     void onConnected(int total, boolean isRangeSupport);
 
     void onProgress(int finished, int total, int progress);
