@@ -2,10 +2,10 @@
 Android Multi-Thread Download library.
 
 ###Demo
-[Download]()
+[Download](https://raw.githubusercontent.com/Aspsine/MultiThreadDownload/master/art/demo.apk)
 
 ###Demo ScreenShot
-
+![Demo](https://github.com/Aspsine/MultiThreadDownload/raw/master/art/pic1.png)
 
 ###How to use
 - Step 1: Add "compile project(':library')" in your 'build.gradle' file.(Maven or jCenter support will be coming soon)
