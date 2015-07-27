@@ -8,8 +8,14 @@ Android Multi-Thread Download library.
 ![Demo](https://github.com/Aspsine/MultiThreadDownload/raw/master/art/pic1.png)
 
 ###How to use
-- Step 1: Add "compile project(':library')" in your 'build.gradle' file.(Maven or jCenter support will be coming soon)
-- Step 2: Config it in your Application class
+- Step 1: Add permition in your 'AndroidManifest.xml'
+```Xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+```
+
+- Step 2: Add "compile project(':library')" in your 'build.gradle' file.(Maven or jCenter support will be coming soon)
+- Step 3: Config it in your Application class
 ```Java
 private void initDownloader() {
     DownloadConfiguration configuration = new DownloadConfiguration(getApplicationContext());
@@ -20,7 +26,7 @@ private void initDownloader() {
     DownloadManager.getInstance().init(configuration);
 }
 ```
-- Step 3: Just use it!
+- Step 4: Just use it!
 ```Java
 // download
 // the third paramater dir here is a specical dir for this download
