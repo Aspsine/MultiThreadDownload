@@ -20,16 +20,17 @@ public class SingleDownloadTask extends AbsDownloadTask {
 
     @Override
     protected void insertIntoDB(ThreadInfo info) {
-
+        // don't support
     }
 
     @Override
     protected void updateDBProgress(ThreadInfo info) {
-
+        // needn't Override this
     }
 
     @Override
     protected Map<String, String> getHttpHeaders(ThreadInfo info) {
+        // simply return null
         return null;
     }
 
