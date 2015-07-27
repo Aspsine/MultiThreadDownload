@@ -8,7 +8,7 @@ Android Multi-Thread Download library.
 ![Demo](https://github.com/Aspsine/MultiThreadDownload/raw/master/art/pic1.png)
 
 ###How to use
-- Step 1: Add permition in your 'AndroidManifest.xml'
+- Step 1: Add permission in 'AndroidManifest.xml'
 ```Xml
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
