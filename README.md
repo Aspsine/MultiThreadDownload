@@ -35,37 +35,30 @@ DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), dir,
 
     @Override
     public void onDownloadStart() {
-    
     }
 
     @Override
     public void onConnected(int total, boolean isRangeSupport) {
-    
     }
 
     @Override
     public void onProgress(int finished, int total, int progress) {
-    
     }
 
     @Override
     public void onComplete() {
-    
     }
 
     @Override
     public void onDownloadPause() {
-    
     }
 
     @Override
     public void onDownloadCancel() {
-    
     }
 
     @Override
     public void onFailure(DownloadException e) {
-    
     }
 });
 
