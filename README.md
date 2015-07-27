@@ -23,7 +23,7 @@ private void initDownloader() {
 - Step 3: Just use it!
 ```Java
 // download
-// the paramater dir here is a specical dir for this download
+// the third paramater dir here is a specical dir for this download
 // if set null it will use default dir you have configed in Step 2;
 DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), dir, new CallBack() {
 
