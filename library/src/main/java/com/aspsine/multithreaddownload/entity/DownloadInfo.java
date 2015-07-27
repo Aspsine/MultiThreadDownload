@@ -21,6 +21,10 @@ public class DownloadInfo implements Serializable {
         this.dir = dir;
     }
 
+    public DownloadInfo(){
+
+    }
+
     public String getName() {
         return name;
     }

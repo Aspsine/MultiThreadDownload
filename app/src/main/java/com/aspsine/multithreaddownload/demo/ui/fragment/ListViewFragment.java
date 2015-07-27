@@ -12,11 +12,13 @@ import android.widget.ListView;
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.DownloadManager;
 import com.aspsine.multithreaddownload.core.DownloadException;
+import com.aspsine.multithreaddownload.core.DownloadStatus;
 import com.aspsine.multithreaddownload.demo.DataSource;
 import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
+import com.aspsine.multithreaddownload.entity.DownloadInfo;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -45,6 +47,14 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
         mAdapter = new ListViewAdapter();
         mAdapter.setOnItemClickListener(this);
         mAppInfos = DataSource.getInstance().getData();
+        for (AppInfo info : mAppInfos) {
+            DownloadInfo downloadInfo = DownloadManager.getInstance().getDownloadProgress(info.getUrl());
+            if (downloadInfo != null) {
+                info.setProgress(downloadInfo.getProgress());
+                info.setDownloadPerSize(getDownloadPerSize(downloadInfo.getFinished(), downloadInfo.getLength()));
+                info.setStatus(AppInfo.STATUS_PAUSE);
+            }
+        }
     }
 
     @Override

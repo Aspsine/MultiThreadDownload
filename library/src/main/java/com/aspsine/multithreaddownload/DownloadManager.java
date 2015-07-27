@@ -68,7 +68,7 @@ public class DownloadManager {
         mExecutorService = Executors.newFixedThreadPool(configuration.maxThreadNum);
         mDelivery = new DownloadStatusDeliveryImpl(new Handler(Looper.getMainLooper()));
 
-        mDBManager = DataBaseManager.getInstance(mConfig.context);
+        mDBManager = DataBaseManager.getInstance(configuration.context);
     }
 
     /**
@@ -122,7 +122,18 @@ public class DownloadManager {
         List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(url);
         DownloadInfo downloadInfo = null;
         if (!threadInfos.isEmpty()) {
-
+            int finished = 0;
+            int progress = 0;
+            int total = 0;
+            for (ThreadInfo info : threadInfos) {
+                finished += info.getFinished();
+                total += (info.getEnd() - info.getStart());
+            }
+            progress = (int) ((long) finished * 100 / total);
+            downloadInfo = new DownloadInfo();
+            downloadInfo.setFinished(finished);
+            downloadInfo.setLength(total);
+            downloadInfo.setProgress(progress);
         }
         return downloadInfo;
     }
