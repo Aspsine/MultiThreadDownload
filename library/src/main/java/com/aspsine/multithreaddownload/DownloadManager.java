@@ -108,13 +108,21 @@ public class DownloadManager {
     public void pause(String url) {
         String tag = createTag(url);
         DownloadRequest request = mDownloadRequestMap.get(tag);
-        request.pause();
+        if (request != null) {
+            request.pause();
+        } else {
+            Log.i("DownloadManager", "pause " + url + " request == null");
+        }
     }
 
     public void cancel(String url) {
         String tag = createTag(url);
         DownloadRequest request = mDownloadRequestMap.get(tag);
-        request.cancel();
+        if (request != null) {
+            request.cancel();
+        } else {
+            Log.i("DownloadManager", "cancel " + url + " request == null");
+        }
         mDownloadRequestMap.remove(tag);
     }
 

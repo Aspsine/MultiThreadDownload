@@ -89,7 +89,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
     @Override
     public void onItemClick(View v, final int position, final AppInfo appInfo) {
 
-        if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING) {
+        if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING || appInfo.getStatus() == AppInfo.STATUS_CONNECTING) {
             if (isCurrentListViewItemVisible(position)) {
                 DownloadManager.getInstance().pause(appInfo.getUrl());
             }
@@ -167,7 +167,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
 
             @Override
             public void onFailure(DownloadException e) {
-                appInfo.setStatus(AppInfo.STATUS_NOT_DOWNLOAD);
+                appInfo.setStatus(AppInfo.STATUS_DOWNLOAD_ERROR);
                 appInfo.setDownloadPerSize("");
                 if (isCurrentListViewItemVisible(position)) {
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);

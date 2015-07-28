@@ -2,6 +2,7 @@ package com.aspsine.multithreaddownload.core;
 
 import android.text.TextUtils;
 
+import com.aspsine.multithreaddownload.Constants;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.util.L;
 
@@ -37,22 +38,26 @@ public class ConnectTask implements Runnable {
 
     public void cancel() {
         mStatus = DownloadStatus.STATUS_CANCEL;
-        mHttpConn.disconnect();
+        if (mHttpConn != null) {
+            L.i("canceled" +mStatus);
+            mHttpConn.disconnect();
+        }
     }
 
-    public synchronized boolean isStart(){
+    public boolean isStart() {
+        L.i("mStatus" + mStatus);
         return mStatus == DownloadStatus.STATUS_STAT;
     }
 
-    public synchronized boolean isConnected(){
+    public boolean isConnected() {
         return mStatus == DownloadStatus.STATUS_CONNECTED;
     }
 
-    public synchronized boolean isCancel() {
+    public boolean isCancel() {
         return mStatus == DownloadStatus.STATUS_CANCEL;
     }
 
-    public synchronized boolean isFailure(){
+    public boolean isFailure() {
         return mStatus == DownloadStatus.STATUS_FAILURE;
     }
 
@@ -65,7 +70,9 @@ public class ConnectTask implements Runnable {
         try {
             URL url = new URL(mDownloadInfo.getUrl());
             mHttpConn = (HttpURLConnection) url.openConnection();
-            mHttpConn.setConnectTimeout(10 * 1000);
+            mHttpConn.setConnectTimeout(Constants.HTTP.CONNECT_TIME_OUT);
+            mHttpConn.setReadTimeout(Constants.HTTP.READ_TIME_OUT);
+            mHttpConn.setRequestMethod(Constants.HTTP.GET);
             int length = -1;
             boolean isSupportRange = false;
             if (mHttpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -88,11 +95,11 @@ public class ConnectTask implements Runnable {
                 mOnConnectListener.onConnected(mDownloadInfo);
             }
         } catch (IOException e) {
-            if (e instanceof java.net.SocketException && isCancel()){
+            if (e instanceof java.net.SocketException && isCancel()) {
                 mStatus = DownloadStatus.STATUS_CANCEL;
                 mOnConnectListener.onConnectCanceled();
                 return;
-            }else{
+            } else {
                 exception = new DownloadException(e);
                 mStatus = DownloadStatus.STATUS_FAILURE;
             }
@@ -103,7 +110,7 @@ public class ConnectTask implements Runnable {
             mHttpConn.disconnect();
         }
 
-        if (isFailure()){
+        if (isFailure()) {
             mOnConnectListener.onConnectFail(exception);
         }
     }

@@ -6,13 +6,13 @@ import com.aspsine.multithreaddownload.CallBack;
  * Created by Aspsine on 2015/7/15.
  */
 public class DownloadStatus {
-    public static final int STATUS_STAT = 0XF00;
-    public static final int STATUS_CONNECTED = 0XF01;
-    public static final int STATUS_PROGRESS = 0xF02;
-    public static final int STATUS_COMPLETE = 0XF03;
-    public static final int STATUS_PAUSE = 0XF04;
-    public static final int STATUS_CANCEL = 0XF05;
-    public static final int STATUS_FAILURE = 0XF06;
+    public static final int STATUS_STAT = 100;
+    public static final int STATUS_CONNECTED = 101;
+    public static final int STATUS_PROGRESS = 102;
+    public static final int STATUS_COMPLETE = 103;
+    public static final int STATUS_PAUSE = 104;
+    public static final int STATUS_CANCEL = 105;
+    public static final int STATUS_FAILURE = 106;
 
     private int status;
     private int length;
