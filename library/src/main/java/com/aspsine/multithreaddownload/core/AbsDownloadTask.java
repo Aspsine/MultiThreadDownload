@@ -29,6 +29,8 @@ public abstract class AbsDownloadTask implements DownloadTask {
     private final ThreadInfo mThreadInfo;
     private final OnDownloadListener mOnDownloadListener;
 
+    private HttpURLConnection mHttpConn;
+
     private int mStatus;
 
     public AbsDownloadTask(DownloadInfo mDownloadInfo, ThreadInfo mThreadInfo, OnDownloadListener mOnDownloadListener) {
@@ -53,11 +55,17 @@ public abstract class AbsDownloadTask implements DownloadTask {
     @Override
     public void cancel() {
         mStatus = DownloadStatus.STATUS_CANCEL;
+        if (mHttpConn != null) {
+            mHttpConn.disconnect();
+        }
     }
 
     @Override
     public void pause() {
         mStatus = DownloadStatus.STATUS_PAUSE;
+        if (mHttpConn != null) {
+            mHttpConn.disconnect();
+        }
     }
 
     @Override
@@ -88,20 +96,19 @@ public abstract class AbsDownloadTask implements DownloadTask {
     @Override
     public void run() {
         insertIntoDB(mThreadInfo);
-        HttpURLConnection httpConn = null;
         InputStream inputStream = null;
         RandomAccessFile raf = null;
         DownloadException exception = null;
         try {
             URL url = new URL(mThreadInfo.getUrl());
-            httpConn = (HttpURLConnection) url.openConnection();
-            httpConn.setConnectTimeout(HTTP.CONNECT_TIME_OUT);
-            httpConn.setRequestMethod(HTTP.GET);
-            setHttpHeader(getHttpHeaders(mThreadInfo), httpConn);
+            mHttpConn = (HttpURLConnection) url.openConnection();
+            mHttpConn.setConnectTimeout(HTTP.CONNECT_TIME_OUT);
+            mHttpConn.setRequestMethod(HTTP.GET);
+            setHttpHeader(getHttpHeaders(mThreadInfo), mHttpConn);
             raf = getFile(mThreadInfo, mDownloadInfo);
-            final int responseCode = httpConn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_PARTIAL) {
-                inputStream = new BufferedInputStream(httpConn.getInputStream());
+            final int responseCode = mHttpConn.getResponseCode();
+            if (responseCode == getResponseCode()) {
+                inputStream = new BufferedInputStream(mHttpConn.getInputStream());
                 byte[] buffer = new byte[1024 * 4];
                 int len = -1;
                 while ((len = inputStream.read(buffer)) != -1) {
@@ -111,22 +118,6 @@ public abstract class AbsDownloadTask implements DownloadTask {
                     synchronized (mOnDownloadListener) {
                         mDownloadInfo.setFinished(mDownloadInfo.getFinished() + len);
                         mOnDownloadListener.onProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
-                    }
-                    if (isCanceled()) {
-                        // cancel
-                        L.i(mTag, "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                        synchronized (mOnDownloadListener) {
-                            mOnDownloadListener.onCancel();
-                        }
-                        return;
-                    } else if (isPaused()) {
-                        // pause
-                        L.i(mTag, "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                        updateDBProgress(mThreadInfo);
-                        synchronized (mOnDownloadListener) {
-                            mOnDownloadListener.onPause();
-                        }
-                        return;
                     }
                 }
                 if (!isCanceled() && !isPaused()) {
@@ -138,17 +129,36 @@ public abstract class AbsDownloadTask implements DownloadTask {
                     }
                     return;
                 }
-            } else if (responseCode == HttpURLConnection.HTTP_OK) {
-                throw new DownloadException("Don't support range download");
+            } else {
+                throw new DownloadException("unSupported response code:" + responseCode);
             }
         } catch (IOException e) {
-            mStatus = DownloadStatus.STATUS_FAILURE;
-            exception = new DownloadException(e);
+            if (e instanceof java.net.SocketException && (isCanceled() || isPaused())) {
+                if (isCanceled()) {
+                    // cancel
+                    L.i(mTag, "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    synchronized (mOnDownloadListener) {
+                        mOnDownloadListener.onCancel();
+                    }
+                    return;
+                } else if (isPaused()) {
+                    // pause
+                    L.i(mTag, "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
+                    updateDBProgress(mThreadInfo);
+                    synchronized (mOnDownloadListener) {
+                        mOnDownloadListener.onPause();
+                    }
+                    return;
+                }
+            } else {
+                mStatus = DownloadStatus.STATUS_FAILURE;
+                exception = new DownloadException(e);
+            }
         } catch (DownloadException e) {
             mStatus = DownloadStatus.STATUS_FAILURE;
             exception = new DownloadException(e);
         } finally {
-            httpConn.disconnect();
+            mHttpConn.disconnect();
             try {
                 IOCloseUtils.close(inputStream);
                 IOCloseUtils.close(raf);
@@ -175,6 +185,8 @@ public abstract class AbsDownloadTask implements DownloadTask {
     }
 
     protected abstract void insertIntoDB(ThreadInfo info);
+
+    protected abstract int getResponseCode();
 
     protected abstract void updateDBProgress(ThreadInfo info);
 

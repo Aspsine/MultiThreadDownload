@@ -11,6 +11,7 @@ import com.aspsine.multithreaddownload.entity.ThreadInfo;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +33,11 @@ public class MultiDownloadTask extends AbsDownloadTask {
         if (!mDBManager.exists(info.getUrl(), info.getId())) {
             mDBManager.insert(info);
         }
+    }
+
+    @Override
+    protected int getResponseCode() {
+        return HttpURLConnection.HTTP_PARTIAL;
     }
 
     @Override

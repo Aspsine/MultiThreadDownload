@@ -7,6 +7,7 @@ import com.aspsine.multithreaddownload.entity.ThreadInfo;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.HttpURLConnection;
 import java.util.Map;
 
 /**
@@ -21,6 +22,11 @@ public class SingleDownloadTask extends AbsDownloadTask {
     @Override
     protected void insertIntoDB(ThreadInfo info) {
         // don't support
+    }
+
+    @Override
+    protected int getResponseCode() {
+        return HttpURLConnection.HTTP_OK;
     }
 
     @Override
