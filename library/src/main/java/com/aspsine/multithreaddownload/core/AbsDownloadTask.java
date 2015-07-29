@@ -31,7 +31,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
 
     private HttpURLConnection mHttpConn;
 
-    private int mStatus;
+    private volatile int mStatus;
 
     public AbsDownloadTask(DownloadInfo mDownloadInfo, ThreadInfo mThreadInfo, OnDownloadListener mOnDownloadListener) {
         this.mDownloadInfo = mDownloadInfo;
@@ -55,6 +55,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
     @Override
     public void cancel() {
         mStatus = DownloadStatus.STATUS_CANCEL;
+        currentThread().interrupt();
         if (mHttpConn != null) {
             mHttpConn.disconnect();
         }
@@ -63,6 +64,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
     @Override
     public void pause() {
         mStatus = DownloadStatus.STATUS_PAUSE;
+        currentThread().interrupt();
         if (mHttpConn != null) {
             mHttpConn.disconnect();
         }
@@ -120,7 +122,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
                         mOnDownloadListener.onProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
                     }
                 }
-                if (!isCanceled() && !isPaused()) {
+                if (!(isPaused() || isCanceled())) {
                     // complete
                     L.i(mTag, "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     mStatus = DownloadStatus.STATUS_COMPLETE;
@@ -133,7 +135,10 @@ public abstract class AbsDownloadTask implements DownloadTask {
                 throw new DownloadException("unSupported response code:" + responseCode);
             }
         } catch (IOException e) {
-            if (e instanceof java.net.SocketException && (isCanceled() || isPaused())) {
+            if (isCanceled() || isPaused()) {
+                // catch exception will clear interrupt status
+                // we need reset interrupt status
+                currentThread().interrupt();
                 if (isCanceled()) {
                     // cancel
                     L.i(mTag, "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
@@ -168,6 +173,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
         }
 
         if (isFailure()) {
+            // failure
             L.i(mTag, "[Failure] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
             synchronized (mOnDownloadListener) {
                 mOnDownloadListener.onFailure(exception);
@@ -182,6 +188,10 @@ public abstract class AbsDownloadTask implements DownloadTask {
                 connection.setRequestProperty(key, headers.get(key));
             }
         }
+    }
+
+    private synchronized Thread currentThread() {
+        return Thread.currentThread();
     }
 
     protected abstract void insertIntoDB(ThreadInfo info);

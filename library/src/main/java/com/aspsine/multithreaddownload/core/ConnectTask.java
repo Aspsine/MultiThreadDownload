@@ -17,7 +17,7 @@ public class ConnectTask implements Runnable {
     private DownloadInfo mDownloadInfo;
     private OnConnectListener mOnConnectListener;
 
-    private int mStatus;
+    private volatile int mStatus;
 
     private HttpURLConnection mHttpConn;
 
@@ -38,8 +38,9 @@ public class ConnectTask implements Runnable {
 
     public void cancel() {
         mStatus = DownloadStatus.STATUS_CANCEL;
+        currentThread().interrupt();
         if (mHttpConn != null) {
-            L.i("canceled" +mStatus);
+            L.i("canceled" + mStatus);
             mHttpConn.disconnect();
         }
     }
@@ -95,8 +96,10 @@ public class ConnectTask implements Runnable {
                 mOnConnectListener.onConnected(mDownloadInfo);
             }
         } catch (IOException e) {
-            if (e instanceof java.net.SocketException && isCancel()) {
-                mStatus = DownloadStatus.STATUS_CANCEL;
+            if (isCancel()) {
+                // catch exception will clear interrupt status
+                // we need reset interrupt status
+                currentThread().interrupt();
                 mOnConnectListener.onConnectCanceled();
                 return;
             } else {
@@ -113,5 +116,9 @@ public class ConnectTask implements Runnable {
         if (isFailure()) {
             mOnConnectListener.onConnectFail(exception);
         }
+    }
+
+    private synchronized Thread currentThread() {
+        return Thread.currentThread();
     }
 }
