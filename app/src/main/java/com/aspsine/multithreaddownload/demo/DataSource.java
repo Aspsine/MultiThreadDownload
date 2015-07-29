@@ -42,7 +42,7 @@ public class DataSource {
     };
 
     private static final String[] URLS = {
-            "http://www.google.com",
+            "http://s1.music.126.net/download/android/CloudMusic_2.8.1_official_4.apk",
             "http://dl.m.cc.youku.com/android/phone/Youku_Phone_youkuweb.apk",
             "http://dldir1.qq.com/qqmi/TencentVideo_V4.1.0.8897_51.apk",
             "http://wap3.ucweb.com/files/UCBrowser/zh-cn/999/UCBrowser_V10.6.0.620_android_pf145_(Build150721222435).apk",

@@ -12,12 +12,12 @@ import android.widget.ListView;
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.DownloadManager;
 import com.aspsine.multithreaddownload.core.DownloadException;
-import com.aspsine.multithreaddownload.core.DownloadStatus;
 import com.aspsine.multithreaddownload.demo.DataSource;
 import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
+import com.aspsine.multithreaddownload.demo.util.Utils;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 
 import java.io.File;
@@ -94,8 +94,21 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                 DownloadManager.getInstance().pause(appInfo.getUrl());
             }
             return;
-        }
+        } else if (appInfo.getStatus() == AppInfo.STATUS_COMPLETE) {
+            if (isCurrentListViewItemVisible(position)) {
+                Utils.installApk(getActivity(), new File(dir, appInfo.getName() + ".apk"));
+            }
+            return;
+        } else if (appInfo.getStatus() == AppInfo.STATUS_INSTALLED) {
+            //unInstall
+//            download(position, appInfo);
 
+        } else {
+            download(position, appInfo);
+        }
+    }
+
+    private void download(final int position, final AppInfo appInfo) {
         DownloadManager.getInstance().download(appInfo.getName() + ".apk", appInfo.getUrl(), dir, new CallBack() {
 
             @Override
@@ -136,6 +149,15 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
             @Override
             public void onComplete() {
                 appInfo.setStatus(AppInfo.STATUS_COMPLETE);
+                File apk = new File(dir, appInfo.getName() + ".apk");
+                if (apk.isFile() && apk.exists()) {
+                    String packageName = Utils.getApkFilePackage(getActivity(), apk);
+                    appInfo.setPackageName(packageName);
+                    if (Utils.isAppInstalled(getActivity(), packageName)) {
+                        appInfo.setStatus(AppInfo.STATUS_INSTALLED);
+                    }
+                }
+
                 if (isCurrentListViewItemVisible(position)) {
                     ListViewAdapter.ViewHolder holder = getViewHolder(position);
                     holder.tvStatus.setText(appInfo.getStatusText());
