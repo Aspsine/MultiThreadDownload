@@ -1,9 +1,17 @@
 package com.aspsine.multithreaddownload.demo.ui.fragment;
 
 
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +27,7 @@ import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
 import com.aspsine.multithreaddownload.demo.util.Utils;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
+import com.aspsine.multithreaddownload.util.L;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -36,6 +45,8 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
 
     private List<AppInfo> mAppInfos;
     private ListViewAdapter mAdapter;
+
+    private AppInstallBroadcastReceiver mReceiver;
 
     public ListViewFragment() {
         // Required empty public constructor
@@ -67,16 +78,83 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-    }
-
-    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         listView.setAdapter(mAdapter);
         mAdapter.setData(mAppInfos);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        removeBroadcastReceiver();
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        registerBroadcastReceiver();
+    }
+
+    private void removeBroadcastReceiver() {
+        getActivity().unregisterReceiver(mReceiver);
+    }
+
+    private void registerBroadcastReceiver() {
+        mReceiver = new AppInstallBroadcastReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        intentFilter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+        intentFilter.addDataScheme("package");
+        getActivity().registerReceiver(mReceiver, intentFilter);
+    }
+
+    public class AppInstallBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
+                Log.i("App", intent.getDataString() + " add");
+//                updateListViewItem(intent, AppInfo.STATUS_INSTALLED);
+            } else if (intent.getAction().equals(Intent.ACTION_PACKAGE_REMOVED)) {
+                Log.i("App", intent.getDataString() + " removed");
+//                updateListViewItem(intent, AppInfo.STATUS_NOT_DOWNLOAD);
+            } else if (intent.getAction().equals(Intent.ACTION_PACKAGE_REPLACED)) {
+                Log.i("App", intent.getDataString() + " replace");
+//                updateListViewItem(intent, AppInfo.STATUS_INSTALLED);
+            }
+        }
+
+    }
+
+    private void updateListViewItem(Intent intent, int status) {
+        String packageName = intent.getDataString();
+        int position = getPosition(packageName);
+        if (position >= 0) {
+            AppInfo appInfo = mAppInfos.get(position);
+            appInfo.setStatus(status);
+            appInfo.setProgress(0);
+            if (isCurrentListViewItemVisible(position)) {
+                ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                holder.btnDownload.setText(appInfo.getButtonText());
+                holder.tvStatus.setText(appInfo.getStatusText());
+                holder.progressBar.setProgress(appInfo.getProgress());
+            }
+        }
+    }
+
+    private int getPosition(String packageName) {
+        int position = -1;
+
+        for (int i = 0; i < mAppInfos.size(); i++) {
+            String packName = mAppInfos.get(i).getPackageName();
+            if (!TextUtils.isEmpty(packageName) || packName.equals(packageName)) {
+                position = i;
+                break;
+            }
+        }
+
+        return position;
     }
 
     private static final DecimalFormat DF = new DecimalFormat("0.00");
@@ -96,13 +174,13 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
             return;
         } else if (appInfo.getStatus() == AppInfo.STATUS_COMPLETE) {
             if (isCurrentListViewItemVisible(position)) {
-                Utils.installApk(getActivity(), new File(dir, appInfo.getName() + ".apk"));
+                Utils.installApp(getActivity(), new File(dir, appInfo.getName() + ".apk"));
             }
             return;
         } else if (appInfo.getStatus() == AppInfo.STATUS_INSTALLED) {
-            //unInstall
-//            download(position, appInfo);
-
+            if (isCurrentListViewItemVisible(position)) {
+                Utils.unInstallApp(getActivity(), appInfo.getPackageName());
+            }
         } else {
             download(position, appInfo);
         }

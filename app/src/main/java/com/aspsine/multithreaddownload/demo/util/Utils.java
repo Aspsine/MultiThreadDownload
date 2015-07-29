@@ -16,11 +16,17 @@ import java.util.List;
  */
 public class Utils {
 
-    public static void installApk(Context context, File file) {
+    public static void installApp(Context context, File file) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setDataAndType(Uri.parse("file://" + file.getPath()),
-                "application/vnd.android.package-archive");
+        intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+        context.startActivity(intent);
+    }
+
+    public static void unInstallApp(Context context, String packageName) {
+        Uri packageUri = Uri.parse("package:" + packageName);
+        Intent intent = new Intent(Intent.ACTION_DELETE, packageUri);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
