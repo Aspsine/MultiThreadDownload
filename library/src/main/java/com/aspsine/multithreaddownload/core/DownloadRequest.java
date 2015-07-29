@@ -30,6 +30,7 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
     private final DownloadStatus mDownloadStatus;
     private final DownloadStatusDelivery mDelivery;
 
+    private ConnectTask mConnectTask;
     private List<DownloadTask> mDownloadTasks;
 
     private int mStatus = -1;
@@ -67,9 +68,23 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
     }
 
     @Override
+    public void onConnectCanceled() {
+        if (mConnectTask.isCancel()){
+            File file = new File(mDownloadDir, mDownloadInfo.getName());
+            if (file.exists() && file.isFile()) {
+                file.delete();
+            }
+            mStatus = DownloadStatus.STATUS_CANCEL;
+            mDelivery.postCancel(mDownloadStatus);
+        }
+    }
+
+    @Override
     public void onConnectFail(DownloadException de) {
-        mStatus = DownloadStatus.STATUS_FAILURE;
-        mDelivery.postFailure(de, mDownloadStatus);
+        if (mConnectTask.isFailure()){
+            mStatus = DownloadStatus.STATUS_FAILURE;
+            mDelivery.postFailure(de, mDownloadStatus);
+        }
     }
 
     @Override
@@ -121,11 +136,15 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
         mDownloadInfo.setFinished(0);
         mDownloadInfo.setLength(0);
         mDownloadStatus.setCallBack(callBack);
-        ConnectTask connectTask = new ConnectTask(mDownloadInfo, this);
-        mExecutorService.execute(connectTask);
+        mConnectTask = new ConnectTask(mDownloadInfo, this);
+        mExecutorService.execute(mConnectTask);
     }
 
     public void pause() {
+        if (mConnectTask.isStart()){
+            mConnectTask.cancel();
+            return;
+        }
         if (ListUtils.isEmpty(mDownloadTasks)) {
             return;
         }
@@ -135,6 +154,10 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
     }
 
     public void cancel() {
+        if (mConnectTask.isStart()){
+            mConnectTask.cancel();
+            return;
+        }
         if (ListUtils.isEmpty(mDownloadTasks)) {
             return;
         }

@@ -105,20 +105,20 @@ public class AppInfo implements Serializable {
         }
     }
 
-    public String getButtonText(){
+    public String getButtonText() {
         switch (status) {
             case STATUS_NOT_DOWNLOAD:
                 return "Download";
             case STATUS_CONNECTING:
-                return "Pause";
+                return "Cancel";
             case STATUS_CONNECT_ERROR:
-                return "Download Again";
+                return "Try Again";
             case STATUS_DOWNLOADING:
                 return "Pause";
             case STATUS_PAUSE:
                 return "Resume";
             case STATUS_DOWNLOAD_ERROR:
-                return "Download Again";
+                return "Try Again";
             case STATUS_COMPLETE:
                 return "Download";
             default:

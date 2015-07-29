@@ -101,6 +101,9 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
                 case DownloadStatus.STATUS_PAUSE:
                     mCallBack.onDownloadPause();
                     break;
+                case DownloadStatus.STATUS_CANCEL:
+                    mCallBack.onDownloadCancel();
+                    break;
                 case DownloadStatus.STATUS_FAILURE:
                     mCallBack.onFailure(mDownloadStatus.getException());
                     break;
