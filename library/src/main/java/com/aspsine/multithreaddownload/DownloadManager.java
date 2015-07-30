@@ -3,7 +3,6 @@ package com.aspsine.multithreaddownload;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.aspsine.multithreaddownload.core.DownloadRequest;
 import com.aspsine.multithreaddownload.core.DownloadStatus;
@@ -12,6 +11,7 @@ import com.aspsine.multithreaddownload.core.DownloadStatusDeliveryImpl;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.util.L;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -87,10 +87,10 @@ public class DownloadManager {
         final DownloadInfo downloadInfo;
         final DownloadRequest request;
         if (mDownloadRequestMap.containsKey(tag)) {
-            Log.i("DownloadManager", "use cached request");
+            L.i("DownloadManager", "use cached request");
             request = mDownloadRequestMap.get(tag);
         } else {
-            Log.i("DownloadManager", "use new request");
+            L.i("DownloadManager", "use new request");
             if (dir == null) {
                 dir = mConfig.downloadDir;
             }
@@ -101,7 +101,7 @@ public class DownloadManager {
         if (!request.isStarted()) {
             request.start(callBack);
         } else {
-            Log.i("DownloadManager", fileName + " : has started!");
+            L.i("DownloadManager", fileName + " : has started!");
         }
     }
 
@@ -111,7 +111,7 @@ public class DownloadManager {
         if (request != null) {
             request.pause();
         } else {
-            Log.i("DownloadManager", "pause " + url + " request == null");
+            L.i("DownloadManager", "pause " + url + " request == null");
         }
     }
 
@@ -121,7 +121,7 @@ public class DownloadManager {
         if (request != null) {
             request.cancel();
         } else {
-            Log.i("DownloadManager", "cancel " + url + " request == null");
+            L.i("DownloadManager", "cancel " + url + " request == null");
         }
         mDownloadRequestMap.remove(tag);
     }
