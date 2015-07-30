@@ -12,16 +12,6 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
 
-        <receiver android:name=".ui.fragment.ListViewFragment$AppInstallBroadcastReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED" />
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.PACKAGE_REMOVED" />
-
-                <data android:scheme="package" />
-            </intent-filter>
-        </receiver>
-
         <activity
             android:name=".ui.activity.AppListActivity"
             android:label="@string/app_name">
