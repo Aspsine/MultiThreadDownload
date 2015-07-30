@@ -17,7 +17,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         sContext = getApplicationContext();
-        CrashHandler.getInstance(getApplicationContext());
+//        CrashHandler.getInstance(getApplicationContext());
         initDownloader();
     }
 

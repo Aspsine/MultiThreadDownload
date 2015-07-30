@@ -13,8 +13,10 @@ public class AppInfo implements Serializable {
     public static final int STATUS_PAUSE = 4;
     public static final int STATUS_DOWNLOAD_ERROR = 5;
     public static final int STATUS_COMPLETE = 6;
+    public static final int STATUS_INSTALLED = 7;
 
     private String name;
+    private String packageName;
     private String id;
     private String image;
     private String url;
@@ -38,6 +40,14 @@ public class AppInfo implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
     }
 
     public String getId() {
@@ -100,6 +110,8 @@ public class AppInfo implements Serializable {
                 return "Download Error";
             case STATUS_COMPLETE:
                 return "Complete";
+            case STATUS_INSTALLED:
+                return "Installed";
             default:
                 return "Not Download";
         }
@@ -120,7 +132,9 @@ public class AppInfo implements Serializable {
             case STATUS_DOWNLOAD_ERROR:
                 return "Try Again";
             case STATUS_COMPLETE:
-                return "Download";
+                return "Install";
+            case STATUS_INSTALLED:
+                return "UnInstall";
             default:
                 return "Download";
         }
