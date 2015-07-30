@@ -1,8 +1,5 @@
 package com.aspsine.multithreaddownload.core;
 
-
-import android.util.Log;
-
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
@@ -180,7 +177,7 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
                 break;
             }
         }
-        Log.i("isAllPaused", "isAllPaused = " + allPaused);
+        L.i("isAllPaused", "isAllPaused = " + allPaused);
         return allPaused;
     }
 

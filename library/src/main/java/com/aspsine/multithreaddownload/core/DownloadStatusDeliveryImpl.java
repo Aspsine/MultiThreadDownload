@@ -95,7 +95,6 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
                     mCallBack.onProgress(finished, length, percent);
                     break;
                 case DownloadStatus.STATUS_COMPLETE:
-                    L.i("DownloadStatus", "STATUS_COMPLETE");
                     mCallBack.onComplete();
                     break;
                 case DownloadStatus.STATUS_PAUSE:
