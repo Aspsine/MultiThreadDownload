@@ -30,7 +30,7 @@ private void initDownloader() {
 ```Java
 // download
 // the third paramater dir here is a specical dir for this download
-// if set null it will use default dir you have configed in Step 2;
+// if set null it will use default dir you have configed in Step 3;
 DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), dir, new CallBack() {
 
     @Override
