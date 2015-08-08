@@ -72,9 +72,11 @@ public class DownloadManager {
     }
 
     /**
-     * @param fileName
-     * @param url
-     * @param callBack
+     * core method: download a file using a http/https url.
+     *
+     * @param fileName  the file's name.
+     * @param url       http or https download url
+     * @param callBack  {@link CallBack} of download
      */
     public void download(String fileName, String url, File dir, CallBack callBack) {
         if (mConfig == null) {
@@ -105,6 +107,16 @@ public class DownloadManager {
         }
     }
 
+    /**
+     * <p>Core method: pause the downloading task.
+     *
+     * <p>Pause the downloading task and record the progress data in database.
+     * Once you invoke{@link #download(String, String, File, CallBack)} method again,
+     * the task will automatically continue downloading. The task will be resumed from
+     * the exactly progress you had paused.
+     *
+     * @param url the url of the download task you want to pause
+     */
     public void pause(String url) {
         String tag = createTag(url);
         DownloadRequest request = mDownloadRequestMap.get(tag);
@@ -115,6 +127,20 @@ public class DownloadManager {
         }
     }
 
+    /**
+     * <p>Core method: cancel the download task.
+     *
+     * <p>The difference between {@link #pause(String url)} and {@link #cancel(String url)}
+     * is that {@link #cancel(String url)} release the reference of the thread task, and
+     * {@link #cancel(String url)} will delete the unfinished file created in the download
+     * path you have configured in {@link DownloadConfiguration#setDownloadDir(File)} and
+     * delete the download progress data in database.
+     *
+     * <p>Note: if your downloading task is connecting the server you can only invoke {@link #cancel(String url)}
+     * to cancel {@link com.aspsine.multithreaddownload.core.ConnectTask} task.
+     *
+     * @param url the url of the download task you want to cancel
+     */
     public void cancel(String url) {
         String tag = createTag(url);
         DownloadRequest request = mDownloadRequestMap.get(tag);
