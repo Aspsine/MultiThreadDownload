@@ -60,7 +60,7 @@ public class DataSource {
     }
 
     public List<AppInfo> getData() {
-        List<AppInfo> appInfos = new ArrayList<>();
+        List<AppInfo> appInfos = new ArrayList<AppInfo>();
         for (int i = 0; i < NAMES.length; i++) {
             AppInfo appInfo = new AppInfo(String.valueOf(i), NAMES[i], IMAGES[i], URLS[i]);
             appInfos.add(appInfo);

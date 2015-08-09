@@ -220,7 +220,7 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
     }
 
     private void download(DownloadInfo downloadInfo) {
-        mDownloadTasks = new LinkedList<>();
+        mDownloadTasks = new LinkedList<DownloadTask>();
         if (downloadInfo.isSupportRange()) {
             //multi thread
             List<ThreadInfo> threadInfos = getMultiThreadInfos();

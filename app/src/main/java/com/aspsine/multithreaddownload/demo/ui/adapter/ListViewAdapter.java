@@ -32,7 +32,7 @@ public class ListViewAdapter extends BaseAdapter {
     private OnItemClickListener mListener;
 
     public ListViewAdapter() {
-        this.mAppInfos = new ArrayList<>();
+        this.mAppInfos = new ArrayList<AppInfo>();
     }
 
     public void setData(List<AppInfo> appInfos) {
