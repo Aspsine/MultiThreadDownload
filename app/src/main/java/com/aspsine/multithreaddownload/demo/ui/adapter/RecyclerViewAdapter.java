@@ -29,7 +29,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private List<AppInfo> mAppInfos;
 
     public RecyclerViewAdapter() {
-        this.mAppInfos = new ArrayList<>();
+        this.mAppInfos = new ArrayList<AppInfo>();
     }
 
     public void setData(List<AppInfo> appInfos) {

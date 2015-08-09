@@ -57,7 +57,7 @@ public class DownloadManager {
      * private construction
      */
     private DownloadManager() {
-        mDownloadRequestMap = new LinkedHashMap<>();
+        mDownloadRequestMap = new LinkedHashMap<String, DownloadRequest>();
     }
 
     public void init(DownloadConfiguration configuration) {

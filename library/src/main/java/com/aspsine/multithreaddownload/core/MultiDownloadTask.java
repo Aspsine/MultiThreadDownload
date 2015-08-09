@@ -47,7 +47,7 @@ public class MultiDownloadTask extends AbsDownloadTask {
 
     @Override
     protected Map<String, String> getHttpHeaders(ThreadInfo info) {
-        Map<String, String> headers = new HashMap<>();
+        Map<String, String> headers = new HashMap<String, String>();
         int start = info.getStart() + info.getFinished();
         int end = info.getEnd();
         headers.put("Range", "bytes=" + start + "-" + end);
