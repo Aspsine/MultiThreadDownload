@@ -55,12 +55,11 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
         if (!mDownloadDir.exists()) {
             if (FileUtils.isSDMounted()) {
                 mDownloadDir.mkdir();
-            } else {
-                mDelivery.postFailure(new DownloadException("can't make dir!"), mDownloadStatus);
+            }else {
+                onFailure(new DownloadException("can't make dir!"));
                 return;
             }
         }
-
         download(downloadInfo);
     }
 
