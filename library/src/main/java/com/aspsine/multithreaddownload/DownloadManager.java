@@ -112,8 +112,7 @@ public class DownloadManager {
      * <p/>
      * <p>Pause the downloading task and record the progress data in database.
      * Once you invoke{@link #download(String, String, File, CallBack)} method again,
-     * the task will automatically continue downloading. The task will be resumed from
-     * the exactly progress you had paused.
+     * the task will be resumed automatically from where you had paused.
      *
      * @param url the url of the download task you want to pause
      */
