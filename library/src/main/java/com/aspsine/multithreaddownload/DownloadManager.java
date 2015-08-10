@@ -74,9 +74,9 @@ public class DownloadManager {
     /**
      * core method: download a file using a http/https url.
      *
-     * @param fileName  the file's name.
-     * @param url       http or https download url
-     * @param callBack  {@link CallBack} of download
+     * @param fileName the file's name.
+     * @param url      http or https download url
+     * @param callBack {@link CallBack} of download
      */
     public void download(String fileName, String url, File dir, CallBack callBack) {
         if (mConfig == null) {
@@ -109,11 +109,10 @@ public class DownloadManager {
 
     /**
      * <p>Core method: pause the downloading task.
-     *
+     * <p/>
      * <p>Pause the downloading task and record the progress data in database.
      * Once you invoke{@link #download(String, String, File, CallBack)} method again,
-     * the task will automatically continue downloading. The task will be resumed from
-     * the exactly progress you had paused.
+     * the task will be resumed automatically from where you had paused.
      *
      * @param url the url of the download task you want to pause
      */
@@ -128,14 +127,26 @@ public class DownloadManager {
     }
 
     /**
+     * <p>Core method: pause all downloading task
+     * <p>detail see{@link #pause(String)}
+     */
+    public void pauseAll() {
+        for (DownloadRequest request : mDownloadRequestMap.values()) {
+            if (request != null && request.isStarted()) {
+                request.pause();
+            }
+        }
+    }
+
+    /**
      * <p>Core method: cancel the download task.
-     *
+     * <p/>
      * <p>The difference between {@link #pause(String url)} and {@link #cancel(String url)}
      * is that {@link #cancel(String url)} release the reference of the thread task, and
      * {@link #cancel(String url)} will delete the unfinished file created in the download
      * path you have configured in {@link DownloadConfiguration#setDownloadDir(File)} and
      * delete the download progress data in database.
-     *
+     * <p/>
      * <p>Note: if your downloading task is connecting the server you can only invoke {@link #cancel(String url)}
      * to cancel {@link com.aspsine.multithreaddownload.core.ConnectTask} task.
      *
@@ -150,6 +161,18 @@ public class DownloadManager {
             L.i("DownloadManager", "cancel " + url + " request == null");
         }
         mDownloadRequestMap.remove(tag);
+    }
+
+    /**
+     * <p>Core method: cancel all downloading task
+     * <p>detail see{@link #cancel(String)}
+     */
+    public void cancelAll(){
+        for (DownloadRequest request : mDownloadRequestMap.values()) {
+            if (request != null && request.isStarted()) {
+                request.cancel();
+            }
+        }
     }
 
     public DownloadInfo getDownloadProgress(String url) {
