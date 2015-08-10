@@ -111,7 +111,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
             final int responseCode = mHttpConn.getResponseCode();
             if (responseCode == getResponseCode()) {
                 inputStream = new BufferedInputStream(mHttpConn.getInputStream());
-                byte[] buffer = new byte[1024 * 4];
+                byte[] buffer = new byte[1024 * 16];
                 int len = -1;
                 while ((len = inputStream.read(buffer)) != -1) {
                     raf.write(buffer, 0, len);
