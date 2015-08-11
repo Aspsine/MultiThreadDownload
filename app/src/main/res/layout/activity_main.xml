@@ -1,58 +1,23 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:padding="16dp"
     tools:context=".ui.activity.MainActivity">
 
-    <TextView
-        android:id="@+id/tvFileName"
-        android:layout_width="wrap_content"
-        android:layout_height="20dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="16dp"
-        android:text="example" />
-
-    <TextView
-        android:id="@+id/tvProgress"
-        android:layout_width="wrap_content"
-        android:layout_height="20dp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginRight="16dp"
-        android:text="0%" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_below="@+id/tvProgress"
-        style="?android:attr/progressBarStyleHorizontal"
+    <Button
+        android:id="@+id/btnListView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:text="ListView demo" />
 
     <Button
-        android:id="@+id/btnPause"
-        android:layout_width="wrap_content"
+        android:id="@+id/btnRecyclerView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/progressBar"
-        android:text="pause" />
+        android:padding="8dp"
+        android:text="RecyclerView demo" />
 
-    <Button
-        android:id="@+id/btnStart"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/progressBar"
-        android:text="start" />
-
-    <Button
-        android:id="@+id/btnCancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/progressBar"
-        android:layout_centerHorizontal="true"
-        android:text="Cancel" />
-
-</RelativeLayout>
+</LinearLayout>
