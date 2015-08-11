@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
+import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.activity.AppDetailActivity;
 import com.squareup.picasso.Picasso;
 
@@ -28,8 +29,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     private List<AppInfo> mAppInfos;
 
+    private OnItemClickListener mListener;
+
     public RecyclerViewAdapter() {
         this.mAppInfos = new ArrayList<AppInfo>();
+    }
+
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.mListener = listener;
     }
 
     public void setData(List<AppInfo> appInfos) {
@@ -62,22 +70,42 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return mAppInfos.size();
     }
 
-    private void bindData(AppViewHolder holder, int position) {
-        AppInfo appInfo = mAppInfos.get(position);
+    private void bindData(AppViewHolder holder, final int position) {
+        final AppInfo appInfo = mAppInfos.get(position);
         holder.tvName.setText(appInfo.getName());
+        holder.tvDownloadPerSize.setText(appInfo.getDownloadPerSize());
+        holder.tvStatus.setText(appInfo.getStatusText());
+        holder.progressBar.setProgress(appInfo.getProgress());
+        holder.btnDownload.setText(appInfo.getButtonText());
         Picasso.with(holder.itemView.getContext()).load(appInfo.getImage()).into(holder.ivIcon);
-        holder.progressBar.setProgress(position * 5);
+        holder.btnDownload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.onItemClick(v, position, appInfo);
+                }
+            }
+        });
     }
 
     public static final class AppViewHolder extends RecyclerView.ViewHolder {
         @Bind(R.id.ivIcon)
-        ImageView ivIcon;
+        public ImageView ivIcon;
+
         @Bind(R.id.tvName)
-        TextView tvName;
+        public TextView tvName;
+
         @Bind(R.id.btnDownload)
-        Button btnDownload;
+        public Button btnDownload;
+
+        @Bind(R.id.tvDownloadPerSize)
+        public TextView tvDownloadPerSize;
+
+        @Bind(R.id.tvStatus)
+        public TextView tvStatus;
+
         @Bind(R.id.progressBar)
-        ProgressBar progressBar;
+        public ProgressBar progressBar;
 
         public AppViewHolder(View itemView) {
             super(itemView);
