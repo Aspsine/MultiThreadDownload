@@ -38,11 +38,11 @@ DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), dir,
     }
 
     @Override
-    public void onConnected(int total, boolean isRangeSupport) {
+    public void onConnected(long total, boolean isRangeSupport) {
     }
 
     @Override
-    public void onProgress(int finished, int total, int progress) {
+    public void onProgress(long finished, long total, int progress) {
     }
 
     @Override
