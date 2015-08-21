@@ -6,9 +6,9 @@ package com.aspsine.multithreaddownload.core;
 public interface DownloadStatusDelivery {
     void postStart(DownloadStatus status);
 
-    void postConnected(int length, boolean isRangeSupport, DownloadStatus status);
+    void postConnected(long length, boolean isRangeSupport, DownloadStatus status);
 
-    void postProgressUpdate(int finished, int total, DownloadStatus status);
+    void postProgressUpdate(long finished, long total, DownloadStatus status);
 
     void postComplete(DownloadStatus status);
 

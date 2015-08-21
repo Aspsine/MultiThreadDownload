@@ -108,7 +108,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
             }
 
             @Override
-            public void onConnected(int total, boolean isRangeSupport) {
+            public void onConnected(long total, boolean isRangeSupport) {
                 appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
                 if (isCurrentListViewItemVisible(position)) {
                     RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
@@ -118,7 +118,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
             }
 
             @Override
-            public void onProgress(int finished, int total, int progress) {
+            public void onProgress(long finished, long total, int progress) {
                 String downloadPerSize = getDownloadPerSize(finished, total);
                 appInfo.setProgress(progress);
                 appInfo.setDownloadPerSize(downloadPerSize);
@@ -199,7 +199,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
         return first <= position && position <= last;
     }
 
-    private String getDownloadPerSize(int finished, int total) {
+    private String getDownloadPerSize(long finished, long total) {
         return DF.format((float) finished / (1024 * 1024)) + "M/" + DF.format((float) total / (1024 * 1024)) + "M";
     }
 }

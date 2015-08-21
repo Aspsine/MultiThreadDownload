@@ -6,7 +6,7 @@ package com.aspsine.multithreaddownload.core;
 public interface DownloadTask extends Runnable {
 
     interface OnDownloadListener {
-        void onProgress(int finished, int length);
+        void onProgress(long finished, long length);
 
         void onComplete();
 

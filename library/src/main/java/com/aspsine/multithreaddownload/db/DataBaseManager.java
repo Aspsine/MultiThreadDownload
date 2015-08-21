@@ -32,7 +32,7 @@ public class DataBaseManager {
         mThreadInfoDao.delete(url);
     }
 
-    public synchronized void update(String url, int threadId, int finished) {
+    public synchronized void update(String url, int threadId, long finished) {
         mThreadInfoDao.update(url, threadId, finished);
     }
 

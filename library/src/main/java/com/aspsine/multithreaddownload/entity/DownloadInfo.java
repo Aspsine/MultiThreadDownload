@@ -11,8 +11,8 @@ public class DownloadInfo implements Serializable {
     private String url;
     private File dir;
     private int progress;
-    private int length;
-    private int finished;
+    private long length;
+    private long finished;
     private boolean isSupportRange;
 
     public DownloadInfo(String name, String url, File dir) {
@@ -49,11 +49,11 @@ public class DownloadInfo implements Serializable {
         this.dir = dir;
     }
 
-    public int getLength() {
+    public long getLength() {
         return length;
     }
 
-    public void setLength(int length) {
+    public void setLength(long length) {
         this.length = length;
     }
 
@@ -65,11 +65,11 @@ public class DownloadInfo implements Serializable {
         this.progress = progress;
     }
 
-    public int getFinished() {
+    public long getFinished() {
         return finished;
     }
 
-    public synchronized void setFinished(int finished) {
+    public synchronized void setFinished(long finished) {
         this.finished = finished;
     }
 

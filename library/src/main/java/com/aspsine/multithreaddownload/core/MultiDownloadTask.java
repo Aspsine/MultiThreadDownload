@@ -48,8 +48,8 @@ public class MultiDownloadTask extends AbsDownloadTask {
     @Override
     protected Map<String, String> getHttpHeaders(ThreadInfo info) {
         Map<String, String> headers = new HashMap<String, String>();
-        int start = info.getStart() + info.getFinished();
-        int end = info.getEnd();
+        long start = info.getStart() + info.getFinished();
+        long end = info.getEnd();
         headers.put("Range", "bytes=" + start + "-" + end);
         return headers;
     }
@@ -58,7 +58,7 @@ public class MultiDownloadTask extends AbsDownloadTask {
     protected RandomAccessFile getFile(ThreadInfo threadInfo, DownloadInfo downloadInfo) throws IOException {
         File file = new File(downloadInfo.getDir(), downloadInfo.getName());
         RandomAccessFile raf = new RandomAccessFile(file, "rwd");
-        int start = threadInfo.getStart() + threadInfo.getFinished();
+        long start = threadInfo.getStart() + threadInfo.getFinished();
         raf.seek(start);
         return raf;
     }

@@ -74,10 +74,16 @@ public class ConnectTask implements Runnable {
             mHttpConn.setConnectTimeout(Constants.HTTP.CONNECT_TIME_OUT);
             mHttpConn.setReadTimeout(Constants.HTTP.READ_TIME_OUT);
             mHttpConn.setRequestMethod(Constants.HTTP.GET);
-            int length = -1;
+            long length = -1;
             boolean isSupportRange = false;
             if (mHttpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                length = mHttpConn.getContentLength();
+                String headerLength = mHttpConn.getHeaderField("Content-Length");
+                L.i("ConnectTask", "headerLength :" + headerLength);
+                if (TextUtils.isEmpty(headerLength) || headerLength.equals("0") || headerLength.equals("-1")) {
+                    length = mHttpConn.getContentLength();
+                } else {
+                    length = Long.parseLong(headerLength);
+                }
                 String acceptRanges = mHttpConn.getHeaderField("Accept-Ranges");
                 L.i("ConnectTask", "Accept-Ranges:" + acceptRanges);
                 if (!TextUtils.isEmpty(acceptRanges)) {

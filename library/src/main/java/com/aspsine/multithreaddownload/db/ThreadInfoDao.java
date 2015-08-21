@@ -21,7 +21,7 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
     }
 
     public static void createTable(SQLiteDatabase db) {
-        db.execSQL("create table " + TABLE_NAME + "(_id integer primary key autoincrement, id integer, url text, start integer, end integer, finished integer)");
+        db.execSQL("create table " + TABLE_NAME + "(_id integer primary key autoincrement, id integer, url text, start long, end long, finished long)");
     }
 
     public static void dropTable(SQLiteDatabase db) {
@@ -44,7 +44,7 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
                 new Object[]{url});
     }
 
-    public void update(String url, int threadId, int finished) {
+    public void update(String url, int threadId, long finished) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("update "
                         + TABLE_NAME
@@ -65,9 +65,9 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
             ThreadInfo info = new ThreadInfo();
             info.setId(cursor.getInt(cursor.getColumnIndex("id")));
             info.setUrl(cursor.getString(cursor.getColumnIndex("url")));
-            info.setEnd(cursor.getInt(cursor.getColumnIndex("end")));
-            info.setStart(cursor.getInt(cursor.getColumnIndex("start")));
-            info.setFinished(cursor.getInt(cursor.getColumnIndex("finished")));
+            info.setEnd(cursor.getLong(cursor.getColumnIndex("end")));
+            info.setStart(cursor.getLong(cursor.getColumnIndex("start")));
+            info.setFinished(cursor.getLong(cursor.getColumnIndex("finished")));
             list.add(info);
         }
         cursor.close();

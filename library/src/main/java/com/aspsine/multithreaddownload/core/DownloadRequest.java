@@ -84,7 +84,7 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
     }
 
     @Override
-    public void onProgress(int finished, int length) {
+    public void onProgress(long finished, long length) {
         mStatus = DownloadStatus.STATUS_PROGRESS;
         mDelivery.postProgressUpdate(finished, length, mDownloadStatus);
     }
@@ -252,9 +252,9 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
         if (threadInfos.isEmpty()) {
             for (int i = 0; i < threadNum; i++) {
                 // calculate average
-                final int average = mDownloadInfo.getLength() / threadNum;
-                int end = 0;
-                int start = average * i;
+                final long average = mDownloadInfo.getLength() / threadNum;
+                long end = 0;
+                long start = average * i;
                 if (i == threadNum - 1) {
                     end = mDownloadInfo.getLength();
                 } else {
