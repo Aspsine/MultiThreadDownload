@@ -15,8 +15,8 @@ public class DownloadStatus {
     public static final int STATUS_FAILURE = 106;
 
     private int status;
-    private int length;
-    private int finished;
+    private long length;
+    private long finished;
     private boolean isRangeSupport;
     private DownloadException exception;
 
@@ -30,19 +30,19 @@ public class DownloadStatus {
         this.status = status;
     }
 
-    public int getLength() {
+    public long getLength() {
         return length;
     }
 
-    public void setLength(int length) {
+    public void setLength(long length) {
         this.length = length;
     }
 
-    public int getFinished() {
+    public long getFinished() {
         return finished;
     }
 
-    public void setFinished(int finished) {
+    public void setFinished(long finished) {
         this.finished = finished;
     }
 

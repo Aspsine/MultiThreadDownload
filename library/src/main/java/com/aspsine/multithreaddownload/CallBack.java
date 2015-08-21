@@ -18,7 +18,7 @@ public interface CallBack {
     void onDownloadStart();
 
     /**
-     * <p> {@link #onConnected(int, boolean)}
+     * <p> {@link #onConnected(long, boolean)}
      * <p> if {@link com.aspsine.multithreaddownload.core.ConnectTask} is successfully
      * connected with the http/https server this method will be invoke. If not method
      * {@link #onFailure(DownloadException)} will be invoke.
@@ -29,17 +29,17 @@ public interface CallBack {
      *                       {@code Accept-Ranges} is {@code bytes} the value of  isRangeSupport is
      *                       {@code true} else {@code false}
      */
-    void onConnected(int total, boolean isRangeSupport);
+    void onConnected(long total, boolean isRangeSupport);
 
     /**
-     * <p> {@link #onProgress(int, int, int)}
+     * <p> {@link #onProgress(long, long, int)}
      * <p> progress callback.
      *
      * @param finished the downloaded length of the file
      * @param total    the total length of the file same value with method {@link }
      * @param progress the percent of progress (finished/total)*100
      */
-    void onProgress(int finished, int total, int progress);
+    void onProgress(long finished, long total, int progress);
 
     /**
      * <p>{@link #onComplete()}
