@@ -19,21 +19,15 @@ public class DownloadConfiguration {
      */
     public int maxThreadNum;
 
-    public final Context context;
-
     /**
      * init with default value
-     *
-     * @param context
      */
-    public DownloadConfiguration(Context context) {
-        this.context = context.getApplicationContext();
+    public DownloadConfiguration() {
+    }
 
-        final File defaultDownloadDir = FileUtils.getDefaultDownloadDir(this.context);
-        final int defaultMaxThreadNum = 10;
-
-        downloadDir = defaultDownloadDir;
-        maxThreadNum = defaultMaxThreadNum;
+    public DownloadConfiguration(File downloadDir, int maxThreadNum) {
+        this.downloadDir = downloadDir;
+        this.maxThreadNum = maxThreadNum;
     }
 
     public File getDownloadDir() {
