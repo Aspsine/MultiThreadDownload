@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutorService;
  */
 public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadTask.OnDownloadListener {
 
-    private static final int threadNum = 3;
+    private static final int THREAD_NUM = 3;
 
     private final DownloadInfo mDownloadInfo;
     private final File mDownloadDir;
@@ -250,12 +250,12 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
         // init threadInfo from db
         List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(mDownloadInfo.getUrl());
         if (threadInfos.isEmpty()) {
-            for (int i = 0; i < threadNum; i++) {
+            for (int i = 0; i < THREAD_NUM; i++) {
                 // calculate average
-                final long average = mDownloadInfo.getLength() / threadNum;
+                final long average = mDownloadInfo.getLength() / THREAD_NUM;
                 long end = 0;
                 long start = average * i;
-                if (i == threadNum - 1) {
+                if (i == THREAD_NUM - 1) {
                     end = mDownloadInfo.getLength();
                 } else {
                     end = start + average - 1;

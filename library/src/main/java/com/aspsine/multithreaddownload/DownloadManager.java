@@ -1,5 +1,6 @@
 package com.aspsine.multithreaddownload;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -11,6 +12,7 @@ import com.aspsine.multithreaddownload.core.DownloadStatusDeliveryImpl;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.util.FileUtils;
 import com.aspsine.multithreaddownload.util.L;
 
 import java.io.File;
@@ -60,15 +62,26 @@ public class DownloadManager {
         mDownloadRequestMap = new LinkedHashMap<String, DownloadRequest>();
     }
 
-    public void init(DownloadConfiguration configuration) {
-        if (configuration == null) {
-            throw new RuntimeException("configuration can not be null!");
-        }
-        this.mConfig = configuration;
-        mExecutorService = Executors.newFixedThreadPool(configuration.maxThreadNum);
-        mDelivery = new DownloadStatusDeliveryImpl(new Handler(Looper.getMainLooper()));
+    public void init(Context context) {
+        init(context, null);
+    }
 
-        mDBManager = DataBaseManager.getInstance(configuration.context);
+    public void init(Context context, DownloadConfiguration config) {
+        if (config == null) {
+            config = new DownloadConfiguration();
+        }
+        if (config.maxThreadNum <= 0) {
+            //default value
+            config.maxThreadNum = 10;
+        }
+        if (config.downloadDir == null) {
+            //default value
+            config.downloadDir = FileUtils.getDefaultDownloadDir(context);
+        }
+        mConfig = config;
+        mDBManager = DataBaseManager.getInstance(context);
+        mExecutorService = Executors.newFixedThreadPool(config.maxThreadNum);
+        mDelivery = new DownloadStatusDeliveryImpl(new Handler(Looper.getMainLooper()));
     }
 
     /**
@@ -109,7 +122,7 @@ public class DownloadManager {
 
     /**
      * <p>Core method: pause the downloading task.
-     * <p/>
+     * <p>
      * <p>Pause the downloading task and record the progress data in database.
      * Once you invoke{@link #download(String, String, File, CallBack)} method again,
      * the task will be resumed automatically from where you had paused.
@@ -140,13 +153,13 @@ public class DownloadManager {
 
     /**
      * <p>Core method: cancel the download task.
-     * <p/>
+     * <p>
      * <p>The difference between {@link #pause(String url)} and {@link #cancel(String url)}
      * is that {@link #cancel(String url)} release the reference of the thread task, and
      * {@link #cancel(String url)} will delete the unfinished file created in the download
      * path you have configured in {@link DownloadConfiguration#setDownloadDir(File)} and
      * delete the download progress data in database.
-     * <p/>
+     * <p>
      * <p>Note: if your downloading task is connecting the server you can only invoke {@link #cancel(String url)}
      * to cancel {@link com.aspsine.multithreaddownload.core.ConnectTask} task.
      *
@@ -167,7 +180,7 @@ public class DownloadManager {
      * <p>Core method: cancel all downloading task
      * <p>detail see{@link #cancel(String)}
      */
-    public void cancelAll(){
+    public void cancelAll() {
         for (DownloadRequest request : mDownloadRequestMap.values()) {
             if (request != null && request.isStarted()) {
                 request.cancel();

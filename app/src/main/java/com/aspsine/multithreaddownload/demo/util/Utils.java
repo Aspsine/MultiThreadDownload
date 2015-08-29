@@ -33,7 +33,10 @@ public class Utils {
     public static String getApkFilePackage(Context context, File apkFile) {
         PackageManager pm = context.getPackageManager();
         PackageInfo info = pm.getPackageArchiveInfo(apkFile.getPath(), PackageManager.GET_ACTIVITIES);
-        return info.applicationInfo.packageName;
+        if (info != null){
+            return info.applicationInfo.packageName;
+        }
+        return null;
     }
 
     public static boolean isAppInstalled(Context context, String packageName) {

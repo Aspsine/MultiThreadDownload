@@ -21,10 +21,10 @@ public class App extends Application {
     }
 
     private void initDownloader() {
-        DownloadConfiguration configuration = new DownloadConfiguration(getApplicationContext());
+        DownloadConfiguration configuration = new DownloadConfiguration();
         configuration.setDownloadDir(FileUtils.getDefaultDownloadDir(getApplicationContext()));
         configuration.setMaxThreadNum(10);
-        DownloadManager.getInstance().init(configuration);
+        DownloadManager.getInstance().init(getApplicationContext(), configuration);
     }
 
     public static Context getContext() {
