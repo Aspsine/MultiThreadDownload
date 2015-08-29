@@ -18,12 +18,12 @@ Android Multi-Thread Download library.
 - Step 3: Config it in your Application class
 ```Java
 private void initDownloader() {
-    DownloadConfiguration configuration = new DownloadConfiguration(getApplicationContext());
+    DownloadConfiguration configuration = new DownloadConfiguration();
     // default download dir
     configuration.setDownloadDir(FileUtils.getDefaultDownloadDir(getApplicationContext()));
-    // max thread number
+    // max thread num
     configuration.setMaxThreadNum(10);
-    DownloadManager.getInstance().init(configuration);
+    DownloadManager.getInstance().init(getApplicationContext(), configuration);
 }
 ```
 - Step 4: Just use it!
