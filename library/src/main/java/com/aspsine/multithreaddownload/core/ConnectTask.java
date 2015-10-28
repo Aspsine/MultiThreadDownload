@@ -47,7 +47,7 @@ public class ConnectTask implements Runnable {
 
     public boolean isStart() {
         L.i("mStatus" + mStatus);
-        return mStatus == DownloadStatus.STATUS_STAT;
+        return mStatus == DownloadStatus.STATUS_START;
     }
 
     public boolean isConnected() {
@@ -65,7 +65,7 @@ public class ConnectTask implements Runnable {
     @Override
     public void run() {
         L.i("ThreadInfo", "InitThread = " + this.hashCode());
-        mStatus = DownloadStatus.STATUS_STAT;
+        mStatus = DownloadStatus.STATUS_START;
         mOnConnectListener.onStart();
         DownloadException exception = null;
         try {
