@@ -3,12 +3,14 @@ package com.aspsine.multithreaddownload;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.telecom.Call;
 import android.text.TextUtils;
 
 import com.aspsine.multithreaddownload.core.DownloadRequest;
 import com.aspsine.multithreaddownload.core.DownloadStatus;
 import com.aspsine.multithreaddownload.core.DownloadStatusDelivery;
 import com.aspsine.multithreaddownload.core.DownloadStatusDeliveryImpl;
+import com.aspsine.multithreaddownload.core.Downloader;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.entity.DownloadInfo;
 import com.aspsine.multithreaddownload.entity.ThreadInfo;
@@ -39,6 +41,8 @@ public class DownloadManager {
      * value:DownloadRequest
      */
     private Map<String, DownloadRequest> mDownloadRequestMap;
+
+    private Map<String, Downloader> mDownloaderMap;
 
     private DownloadConfiguration mConfig;
 
@@ -120,9 +124,25 @@ public class DownloadManager {
         }
     }
 
+    public void download(DownloadRequest request, String tag, CallBack callBack) {
+        final Downloader downloader;
+        final String key = createTag(tag);
+        if (mDownloaderMap.containsKey(key)) {
+            downloader = mDownloaderMap.get(key);
+        } else {
+            downloader = new Downloader(request);
+            mDownloaderMap.put(tag, downloader);
+        }
+        if (downloader.isRunning()) {
+            L.i("DownloadManager", "Task has been started!");
+        } else {
+            downloader.start(callBack);
+        }
+    }
+
     /**
      * <p>Core method: pause the downloading task.
-     * <p>
+     * <p/>
      * <p>Pause the downloading task and record the progress data in database.
      * Once you invoke{@link #download(String, String, File, CallBack)} method again,
      * the task will be resumed automatically from where you had paused.
@@ -153,13 +173,13 @@ public class DownloadManager {
 
     /**
      * <p>Core method: cancel the download task.
-     * <p>
+     * <p/>
      * <p>The difference between {@link #pause(String url)} and {@link #cancel(String url)}
      * is that {@link #cancel(String url)} release the reference of the thread task, and
      * {@link #cancel(String url)} will delete the unfinished file created in the download
      * path you have configured in {@link DownloadConfiguration#setDownloadDir(File)} and
      * delete the download progress data in database.
-     * <p>
+     * <p/>
      * <p>Note: if your downloading task is connecting the server you can only invoke {@link #cancel(String url)}
      * to cancel {@link com.aspsine.multithreaddownload.core.ConnectTask} task.
      *
@@ -212,8 +232,11 @@ public class DownloadManager {
         return mDownloadRequestMap.get(createTag(url));
     }
 
-    private static String createTag(String url) {
-        return String.valueOf(url.hashCode());
+    private static String createTag(String tag) {
+        if (tag == null) {
+            throw new NullPointerException("Tag can't be null!");
+        }
+        return String.valueOf(tag.hashCode());
     }
 
 }
