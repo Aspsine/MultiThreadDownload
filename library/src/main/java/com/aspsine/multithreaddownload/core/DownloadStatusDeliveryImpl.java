@@ -24,7 +24,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
 
     @Override
     public void postStart(DownloadStatus status) {
-        status.setStatus(DownloadStatus.STATUS_STAT);
+        status.setStatus(DownloadStatus.STATUS_START);
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
 
@@ -82,7 +82,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
         @Override
         public void run() {
             switch (mDownloadStatus.getStatus()) {
-                case DownloadStatus.STATUS_STAT:
+                case DownloadStatus.STATUS_START:
                     mCallBack.onDownloadStart();
                     break;
                 case DownloadStatus.STATUS_CONNECTED:

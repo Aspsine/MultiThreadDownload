@@ -44,7 +44,7 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
 
     @Override
     public void onStart() {
-        mStatus = DownloadStatus.STATUS_STAT;
+        mStatus = DownloadStatus.STATUS_START;
         mDelivery.postStart(mDownloadStatus);
     }
 
@@ -163,7 +163,7 @@ public class DownloadRequest implements ConnectTask.OnConnectListener, DownloadT
     }
 
     public synchronized boolean isStarted() {
-        return mStatus == DownloadStatus.STATUS_STAT
+        return mStatus == DownloadStatus.STATUS_START
                 || mStatus == DownloadStatus.STATUS_CONNECTED
                 || mStatus == DownloadStatus.STATUS_PROGRESS;
     }
