@@ -1,8 +1,8 @@
 package com.aspsine.multithreaddownload.core;
 
 
-import com.aspsine.multithreaddownload.entity.DownloadInfo;
-import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.DownloadInfo;
+import com.aspsine.multithreaddownload.db.ThreadInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Created by Aspsine on 2015/7/22.
  */
-public class SingleDownloadTask extends AbsDownloadTask {
+public class SingleDownloadTask extends DownloadTaskImpl {
 
     public SingleDownloadTask(DownloadInfo mDownloadInfo, ThreadInfo mThreadInfo, OnDownloadListener mOnDownloadListener) {
         super(mDownloadInfo, mThreadInfo, mOnDownloadListener);

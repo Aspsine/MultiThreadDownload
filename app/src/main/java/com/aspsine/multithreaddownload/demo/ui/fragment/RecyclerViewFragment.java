@@ -12,14 +12,14 @@ import android.view.ViewGroup;
 
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.DownloadManager;
-import com.aspsine.multithreaddownload.core.DownloadException;
+import com.aspsine.multithreaddownload.DownloadException;
 import com.aspsine.multithreaddownload.demo.DataSource;
 import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.RecyclerViewAdapter;
 import com.aspsine.multithreaddownload.demo.util.Utils;
-import com.aspsine.multithreaddownload.entity.DownloadInfo;
+import com.aspsine.multithreaddownload.DownloadInfo;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -98,7 +98,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
         DownloadManager.getInstance().download(appInfo.getName() + ".apk", appInfo.getUrl(), dir, new CallBack() {
 
             @Override
-            public void onDownloadStart() {
+            public void onConnecting() {
                 appInfo.setStatus(AppInfo.STATUS_CONNECTING);
                 if (isCurrentListViewItemVisible(position)) {
                     RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
@@ -133,7 +133,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
             }
 
             @Override
-            public void onComplete() {
+            public void onCompleted() {
                 appInfo.setStatus(AppInfo.STATUS_COMPLETE);
                 File apk = new File(dir, appInfo.getName() + ".apk");
                 if (apk.isFile() && apk.exists()) {
@@ -152,7 +152,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
             }
 
             @Override
-            public void onDownloadPause() {
+            public void onDownloadPaused() {
                 appInfo.setStatus(AppInfo.STATUS_PAUSE);
                 if (isCurrentListViewItemVisible(position)) {
                     RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
@@ -162,7 +162,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
             }
 
             @Override
-            public void onDownloadCancel() {
+            public void onDownloadCanceled() {
                 appInfo.setStatus(AppInfo.STATUS_NOT_DOWNLOAD);
                 appInfo.setDownloadPerSize("");
                 if (isCurrentListViewItemVisible(position)) {
@@ -174,7 +174,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
             }
 
             @Override
-            public void onFailure(DownloadException e) {
+            public void onFailed(DownloadException e) {
                 appInfo.setStatus(AppInfo.STATUS_DOWNLOAD_ERROR);
                 appInfo.setDownloadPerSize("");
                 if (isCurrentListViewItemVisible(position)) {

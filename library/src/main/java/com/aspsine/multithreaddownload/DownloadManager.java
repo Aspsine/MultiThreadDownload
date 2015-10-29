@@ -3,21 +3,18 @@ package com.aspsine.multithreaddownload;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.telecom.Call;
-import android.text.TextUtils;
 
-import com.aspsine.multithreaddownload.core.DownloadRequest;
-import com.aspsine.multithreaddownload.core.DownloadStatus;
-import com.aspsine.multithreaddownload.core.DownloadStatusDelivery;
+import com.aspsine.multithreaddownload.architecture.DownloadResponse;
+import com.aspsine.multithreaddownload.architecture.Downloader;
+import com.aspsine.multithreaddownload.core.DownloadResponseImpl;
+import com.aspsine.multithreaddownload.architecture.DownloadStatusDelivery;
 import com.aspsine.multithreaddownload.core.DownloadStatusDeliveryImpl;
-import com.aspsine.multithreaddownload.core.Downloader;
+import com.aspsine.multithreaddownload.core.DownloaderImpl;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
-import com.aspsine.multithreaddownload.entity.DownloadInfo;
-import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.db.ThreadInfo;
 import com.aspsine.multithreaddownload.util.FileUtils;
 import com.aspsine.multithreaddownload.util.L;
 
-import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +24,9 @@ import java.util.concurrent.Executors;
 /**
  * Created by Aspsine on 2015/7/14.
  */
-public class DownloadManager {
+public class DownloadManager implements Downloader.OnDownloaderDestroyedListener {
+
+    public static final String TAG = DownloadManager.class.getSimpleName();
 
     /**
      * singleton of DownloadManager
@@ -88,125 +87,77 @@ public class DownloadManager {
         mDelivery = new DownloadStatusDeliveryImpl(new Handler(Looper.getMainLooper()));
     }
 
-    /**
-     * core method: download a file using a http/https url.
-     *
-     * @param fileName the file's name.
-     * @param url      http or https download url
-     * @param callBack {@link CallBack} of download
-     */
-    public void download(String fileName, String url, File dir, CallBack callBack) {
-        if (mConfig == null) {
-            throw new RuntimeException("Please config first!");
-        }
-        if (TextUtils.isEmpty(fileName) || TextUtils.isEmpty(url)) {
-            throw new RuntimeException("fileName or url can not be null or empty!");
-        }
-        final String tag = createTag(url);
-        final DownloadInfo downloadInfo;
-        final DownloadRequest request;
-        if (mDownloadRequestMap.containsKey(tag)) {
-            L.i("DownloadManager", "use cached request");
-            request = mDownloadRequestMap.get(tag);
-        } else {
-            L.i("DownloadManager", "use new request");
-            if (dir == null) {
-                dir = mConfig.downloadDir;
-            }
-            downloadInfo = new DownloadInfo(fileName, url, dir);
-            request = new DownloadRequest(downloadInfo, mDBManager, mExecutorService, new DownloadStatus(), mDelivery);
-            mDownloadRequestMap.put(tag, request);
-        }
-        if (!request.isStarted()) {
-            request.start(callBack);
-        } else {
-            L.i("DownloadManager", fileName + " : has started!");
+    @Override
+    public void onDestroyed(String key, Downloader downloader) {
+        if (mDownloaderMap.containsKey(key)) {
+            mDownloaderMap.remove(key);
         }
     }
 
     public void download(DownloadRequest request, String tag, CallBack callBack) {
-        final Downloader downloader;
-        final String key = createTag(tag);
-        if (mDownloaderMap.containsKey(key)) {
-            downloader = mDownloaderMap.get(key);
-        } else {
-            downloader = new Downloader(request);
+        final String key = createKey(tag);
+        if (check(key)) {
+            DownloadResponse response = new DownloadResponseImpl(mDelivery, callBack);
+            Downloader downloader = new DownloaderImpl(request, response, mExecutorService, mDBManager, key, this);
             mDownloaderMap.put(tag, downloader);
-        }
-        if (downloader.isRunning()) {
-            L.i("DownloadManager", "Task has been started!");
-        } else {
-            downloader.start(callBack);
+            downloader.start();
         }
     }
 
-    /**
-     * <p>Core method: pause the downloading task.
-     * <p/>
-     * <p>Pause the downloading task and record the progress data in database.
-     * Once you invoke{@link #download(String, String, File, CallBack)} method again,
-     * the task will be resumed automatically from where you had paused.
-     *
-     * @param url the url of the download task you want to pause
-     */
-    public void pause(String url) {
-        String tag = createTag(url);
-        DownloadRequest request = mDownloadRequestMap.get(tag);
-        if (request != null) {
-            request.pause();
-        } else {
-            L.i("DownloadManager", "pause " + url + " request == null");
+    public void pause(String tag) {
+        String key = createKey(tag);
+        Downloader downloader = mDownloaderMap.get(key);
+        if (downloader != null) {
+            if (downloader.isRunning()) {
+                downloader.pause();
+            }
         }
     }
 
-    /**
-     * <p>Core method: pause all downloading task
-     * <p>detail see{@link #pause(String)}
-     */
+    public void cancel(String tag) {
+        String key = createKey(tag);
+        Downloader downloader = mDownloaderMap.get(key);
+        if (downloader != null) {
+            downloader.cancel();
+        }
+    }
+
     public void pauseAll() {
-        for (DownloadRequest request : mDownloadRequestMap.values()) {
-            if (request != null && request.isStarted()) {
-                request.pause();
+        for (Downloader downloader : mDownloaderMap.values()) {
+            if (downloader != null) {
+                if (downloader.isRunning()) {
+                    downloader.pause();
+                }
             }
         }
     }
 
-    /**
-     * <p>Core method: cancel the download task.
-     * <p/>
-     * <p>The difference between {@link #pause(String url)} and {@link #cancel(String url)}
-     * is that {@link #cancel(String url)} release the reference of the thread task, and
-     * {@link #cancel(String url)} will delete the unfinished file created in the download
-     * path you have configured in {@link DownloadConfiguration#setDownloadDir(File)} and
-     * delete the download progress data in database.
-     * <p/>
-     * <p>Note: if your downloading task is connecting the server you can only invoke {@link #cancel(String url)}
-     * to cancel {@link com.aspsine.multithreaddownload.core.ConnectTask} task.
-     *
-     * @param url the url of the download task you want to cancel
-     */
-    public void cancel(String url) {
-        String tag = createTag(url);
-        DownloadRequest request = mDownloadRequestMap.get(tag);
-        if (request != null) {
-            request.cancel();
-        } else {
-            L.i("DownloadManager", "cancel " + url + " request == null");
-        }
-        mDownloadRequestMap.remove(tag);
-    }
-
-    /**
-     * <p>Core method: cancel all downloading task
-     * <p>detail see{@link #cancel(String)}
-     */
     public void cancelAll() {
-        for (DownloadRequest request : mDownloadRequestMap.values()) {
-            if (request != null && request.isStarted()) {
-                request.cancel();
+        for (Downloader downloader : mDownloaderMap.values()) {
+            if (downloader != null) {
+                if (downloader.isRunning()) {
+                    downloader.cancel();
+                }
             }
         }
     }
+
+//    public void delete(String tag) {
+//        String key = createKey(tag);
+//        if (mDownloaderMap.containsKey(key)) {
+//            Downloader downloader = mDownloaderMap.get(key);
+//            downloader.cancel();
+//        } else {
+//            List<DownloadInfo> infoList = mDBManager.getDownloadInfos(tag);
+//            for (DownloadInfo info : infoList) {
+//                FileUtils.delete(info.getD);
+//            }
+//        }
+//    }
+//
+//    public void deleteAll() {
+//
+//    }
 
     public DownloadInfo getDownloadProgress(String url) {
         List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(url);
@@ -228,15 +179,27 @@ public class DownloadManager {
         return downloadInfo;
     }
 
-    private DownloadRequest getDownloadRequest(String url) {
-        return mDownloadRequestMap.get(createTag(url));
+    private boolean check(String key) {
+        if (mDownloaderMap.containsKey(key)) {
+            Downloader downloader = mDownloaderMap.get(key);
+            if (downloader != null) {
+                if (downloader.isRunning()) {
+                    L.w("Task has been started!");
+                    return false;
+                } else {
+                    throw new IllegalStateException("Downloader with same has not been destroyed!");
+                }
+            }
+        }
+        return true;
     }
 
-    private static String createTag(String tag) {
+    private static String createKey(String tag) {
         if (tag == null) {
             throw new NullPointerException("Tag can't be null!");
         }
         return String.valueOf(tag.hashCode());
     }
+
 
 }

@@ -4,8 +4,11 @@ package com.aspsine.multithreaddownload.core;
 import android.text.TextUtils;
 
 import com.aspsine.multithreaddownload.Constants.HTTP;
-import com.aspsine.multithreaddownload.entity.DownloadInfo;
-import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.DownloadException;
+import com.aspsine.multithreaddownload.architecture.DownloadStatus;
+import com.aspsine.multithreaddownload.architecture.DownloadTask;
+import com.aspsine.multithreaddownload.DownloadInfo;
+import com.aspsine.multithreaddownload.db.ThreadInfo;
 import com.aspsine.multithreaddownload.util.IOCloseUtils;
 import com.aspsine.multithreaddownload.util.L;
 
@@ -21,7 +24,7 @@ import java.util.Map;
 /**
  * Created by Aspsine on 2015/7/27.
  */
-public abstract class AbsDownloadTask implements DownloadTask {
+public abstract class DownloadTaskImpl implements DownloadTask {
 
     private String mTag;
 
@@ -33,7 +36,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
 
     private volatile int mStatus;
 
-    public AbsDownloadTask(DownloadInfo mDownloadInfo, ThreadInfo mThreadInfo, OnDownloadListener mOnDownloadListener) {
+    public DownloadTaskImpl(DownloadInfo mDownloadInfo, ThreadInfo mThreadInfo, OnDownloadListener mOnDownloadListener) {
         this.mDownloadInfo = mDownloadInfo;
         this.mThreadInfo = mThreadInfo;
         this.mOnDownloadListener = mOnDownloadListener;
@@ -54,7 +57,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
 
     @Override
     public void cancel() {
-        mStatus = DownloadStatus.STATUS_CANCEL;
+        mStatus = DownloadStatus.STATUS_CANCELED;
         currentThread().interrupt();
         if (mHttpConn != null) {
             mHttpConn.disconnect();
@@ -63,7 +66,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
 
     @Override
     public void pause() {
-        mStatus = DownloadStatus.STATUS_PAUSE;
+        mStatus = DownloadStatus.STATUS_PAUSED;
         currentThread().interrupt();
         if (mHttpConn != null) {
             mHttpConn.disconnect();
@@ -77,22 +80,22 @@ public abstract class AbsDownloadTask implements DownloadTask {
 
     @Override
     public boolean isComplete() {
-        return mStatus == DownloadStatus.STATUS_COMPLETE;
+        return mStatus == DownloadStatus.STATUS_COMPLETED;
     }
 
     @Override
     public boolean isPaused() {
-        return mStatus == DownloadStatus.STATUS_PAUSE;
+        return mStatus == DownloadStatus.STATUS_PAUSED;
     }
 
     @Override
     public boolean isCanceled() {
-        return mStatus == DownloadStatus.STATUS_CANCEL;
+        return mStatus == DownloadStatus.STATUS_CANCELED;
     }
 
     @Override
     public boolean isFailure() {
-        return mStatus == DownloadStatus.STATUS_FAILURE;
+        return mStatus == DownloadStatus.STATUS_FAILED;
     }
 
     @Override
@@ -119,15 +122,15 @@ public abstract class AbsDownloadTask implements DownloadTask {
                     L.i(mTag, "[Downloading] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     synchronized (mOnDownloadListener) {
                         mDownloadInfo.setFinished(mDownloadInfo.getFinished() + len);
-                        mOnDownloadListener.onProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
+                        mOnDownloadListener.onDownloadProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
                     }
                 }
                 if (!(isPaused() || isCanceled())) {
                     // complete
                     L.i(mTag, "[Complete] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
-                    mStatus = DownloadStatus.STATUS_COMPLETE;
+                    mStatus = DownloadStatus.STATUS_COMPLETED;
                     synchronized (mOnDownloadListener) {
-                        mOnDownloadListener.onComplete();
+                        mOnDownloadListener.onDownloadCompleted();
                     }
                     return;
                 }
@@ -143,7 +146,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
                     // cancel
                     L.i(mTag, "[Cancel] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     synchronized (mOnDownloadListener) {
-                        mOnDownloadListener.onCancel();
+                        mOnDownloadListener.onDownloadCanceled();
                     }
                     return;
                 } else if (isPaused()) {
@@ -151,16 +154,16 @@ public abstract class AbsDownloadTask implements DownloadTask {
                     L.i(mTag, "[Pause] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
                     updateDBProgress(mThreadInfo);
                     synchronized (mOnDownloadListener) {
-                        mOnDownloadListener.onPause();
+                        mOnDownloadListener.onDownloadPaused();
                     }
                     return;
                 }
             } else {
-                mStatus = DownloadStatus.STATUS_FAILURE;
+                mStatus = DownloadStatus.STATUS_FAILED;
                 exception = new DownloadException(e);
             }
         } catch (DownloadException e) {
-            mStatus = DownloadStatus.STATUS_FAILURE;
+            mStatus = DownloadStatus.STATUS_FAILED;
             exception = new DownloadException(e);
         } finally {
             mHttpConn.disconnect();
@@ -176,7 +179,7 @@ public abstract class AbsDownloadTask implements DownloadTask {
             // failure
             L.i(mTag, "[Failure] " + " hashcode = " + this.hashCode() + "; ThreadId = " + mThreadInfo.getId() + "; finished = " + mThreadInfo.getFinished());
             synchronized (mOnDownloadListener) {
-                mOnDownloadListener.onFailure(exception);
+                mOnDownloadListener.onDownloadFailed(exception);
             }
             return;
         }

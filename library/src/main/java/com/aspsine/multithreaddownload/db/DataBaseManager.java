@@ -2,8 +2,6 @@ package com.aspsine.multithreaddownload.db;
 
 import android.content.Context;
 
-import com.aspsine.multithreaddownload.entity.ThreadInfo;
-
 import java.util.List;
 
 /**

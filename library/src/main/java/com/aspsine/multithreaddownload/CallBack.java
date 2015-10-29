@@ -1,7 +1,6 @@
 package com.aspsine.multithreaddownload;
 
-import com.aspsine.multithreaddownload.core.ConnectTask;
-import com.aspsine.multithreaddownload.core.DownloadException;
+import com.aspsine.multithreaddownload.core.ConnectTaskImpl;
 
 import java.net.HttpURLConnection;
 
@@ -11,21 +10,21 @@ import java.net.HttpURLConnection;
 public interface CallBack {
 
     /**
-     * <p> {@link #onDownloadStart()}
+     * <p> {@link #onConnecting()}
      * <p> this will be the the first method called by
-     * {@link com.aspsine.multithreaddownload.core.ConnectTask}.
+     * {@link ConnectTaskImpl}.
      */
-    void onDownloadStart();
+    void onConnecting();
 
     /**
      * <p> {@link #onConnected(long, boolean)}
-     * <p> if {@link com.aspsine.multithreaddownload.core.ConnectTask} is successfully
+     * <p> if {@link ConnectTaskImpl} is successfully
      * connected with the http/https server this method will be invoke. If not method
-     * {@link #onFailure(DownloadException)} will be invoke.
+     * {@link #onFailed(DownloadException)} will be invoke.
      *
      * @param total          The length of the file. See {@link HttpURLConnection#getContentLength()}
      * @param isRangeSupport indicate whether download can be resumed from pause.
-     *                       See {@link ConnectTask#run()}. If the value of http header field
+     *                       See {@link ConnectTaskImpl#run()}. If the value of http header field
      *                       {@code Accept-Ranges} is {@code bytes} the value of  isRangeSupport is
      *                       {@code true} else {@code false}
      */
@@ -42,30 +41,30 @@ public interface CallBack {
     void onProgress(long finished, long total, int progress);
 
     /**
-     * <p>{@link #onComplete()}
+     * <p>{@link #onCompleted()}
      * <p> download complete
      */
-    void onComplete();
+    void onCompleted();
 
     /**
-     * <p>{@link #onDownloadPause()}
+     * <p>{@link #onDownloadPaused()}
      * <p> if you invoke {@link DownloadManager#pause(String)} or {@link DownloadManager#pauseAll()}
      * this method will be invoke if the downloading task is successfully paused.
      */
-    void onDownloadPause();
+    void onDownloadPaused();
 
     /**
-     * <p>{@link #onDownloadCancel()}
+     * <p>{@link #onDownloadCanceled()}
      * <p> if you invoke {@link DownloadManager#cancel(String)} or {@link DownloadManager#cancelAll()}
      * this method will be invoke if the downloading task is successfully canceled.
      */
-    void onDownloadCancel();
+    void onDownloadCanceled();
 
     /**
-     * <p>{@link #onDownloadCancel()}
+     * <p>{@link #onFailed(DownloadException)}
      * <p> download fail or exception callback
      *
      * @param e
      */
-    void onFailure(DownloadException e);
+    void onFailed(DownloadException e);
 }

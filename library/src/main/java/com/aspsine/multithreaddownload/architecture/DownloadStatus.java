@@ -1,4 +1,4 @@
-package com.aspsine.multithreaddownload.core;
+package com.aspsine.multithreaddownload.architecture;
 
 import com.aspsine.multithreaddownload.CallBack;
 
@@ -7,18 +7,20 @@ import com.aspsine.multithreaddownload.CallBack;
  */
 public class DownloadStatus {
     public static final int STATUS_START = 100;
-    public static final int STATUS_CONNECTED = 101;
-    public static final int STATUS_PROGRESS = 102;
-    public static final int STATUS_COMPLETE = 103;
-    public static final int STATUS_PAUSE = 104;
-    public static final int STATUS_CANCEL = 105;
-    public static final int STATUS_FAILURE = 106;
+    public static final int STATUS_WAITING = 101;
+    public static final int STATUS_CONNECTING = 102;
+    public static final int STATUS_CONNECTED = 103;
+    public static final int STATUS_PROGRESS = 104;
+    public static final int STATUS_COMPLETED = 105;
+    public static final int STATUS_PAUSED = 106;
+    public static final int STATUS_CANCELED = 107;
+    public static final int STATUS_FAILED = 108;
 
     private int status;
     private long length;
     private long finished;
     private boolean isRangeSupport;
-    private DownloadException exception;
+    private Exception exception;
 
     private CallBack callBack;
 
@@ -54,11 +56,11 @@ public class DownloadStatus {
         this.isRangeSupport = isRangeSupport;
     }
 
-    public DownloadException getException() {
+    public Exception getException() {
         return exception;
     }
 
-    public void setException(DownloadException exception) {
+    public void setException(Exception exception) {
         this.exception = exception;
     }
 

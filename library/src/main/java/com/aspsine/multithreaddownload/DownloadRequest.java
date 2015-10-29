@@ -1,4 +1,4 @@
-package com.aspsine.multithreaddownload.core;
+package com.aspsine.multithreaddownload;
 
 import android.net.Uri;
 

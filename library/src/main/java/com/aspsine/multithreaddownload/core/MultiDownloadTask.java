@@ -5,8 +5,8 @@ package com.aspsine.multithreaddownload.core;
  */
 
 import com.aspsine.multithreaddownload.db.DataBaseManager;
-import com.aspsine.multithreaddownload.entity.DownloadInfo;
-import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.DownloadInfo;
+import com.aspsine.multithreaddownload.db.ThreadInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * download thread
  */
-public class MultiDownloadTask extends AbsDownloadTask {
+public class MultiDownloadTask extends DownloadTaskImpl {
 
     private DataBaseManager mDBManager;
 

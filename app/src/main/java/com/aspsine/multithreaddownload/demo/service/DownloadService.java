@@ -8,7 +8,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.DownloadManager;
-import com.aspsine.multithreaddownload.core.DownloadException;
+import com.aspsine.multithreaddownload.DownloadException;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 
 /**
@@ -31,7 +31,7 @@ public class DownloadService extends Service{
 
         DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), null, new CallBack() {
             @Override
-            public void onDownloadStart() {
+            public void onConnecting() {
                 Notification notification = new NotificationCompat.Builder(getApplicationContext()).build();
             }
 
@@ -46,22 +46,22 @@ public class DownloadService extends Service{
             }
 
             @Override
-            public void onComplete() {
+            public void onCompleted() {
 
             }
 
             @Override
-            public void onDownloadPause() {
+            public void onDownloadPaused() {
 
             }
 
             @Override
-            public void onDownloadCancel() {
+            public void onDownloadCanceled() {
 
             }
 
             @Override
-            public void onFailure(DownloadException e) {
+            public void onFailed(DownloadException e) {
 
             }
         });

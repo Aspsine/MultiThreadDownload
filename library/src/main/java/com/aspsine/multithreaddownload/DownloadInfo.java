@@ -1,4 +1,4 @@
-package com.aspsine.multithreaddownload.entity;
+package com.aspsine.multithreaddownload;
 
 import java.io.File;
 import java.io.Serializable;
