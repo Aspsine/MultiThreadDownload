@@ -21,8 +21,6 @@ import java.util.concurrent.Executor;
  */
 public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener, DownloadTask.OnDownloadListener {
 
-    private int mStatus;
-
     private DownloadRequest mRequest;
 
     private DownloadResponse mResponse;
@@ -36,6 +34,10 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     private DownloadConfiguration mConfig;
 
     private OnDownloaderDestroyedListener mListener;
+
+    private int mStatus;
+
+    private DownloadInfo mDownloadInfo;
 
     private ConnectTask mConnectTask;
 
@@ -106,7 +108,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     public void onConnected(long time, long length, boolean isAcceptRanges) {
         mStatus = DownloadStatus.STATUS_CONNECTED;
         mResponse.onConnected(time, length, isAcceptRanges);
-        download(isAcceptRanges);
+        download(length, isAcceptRanges);
     }
 
     @Override
@@ -168,18 +170,18 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         mExecutor.execute(mConnectTask);
     }
 
-    private void download(boolean acceptRanges) {
-        initDownloadTasks(acceptRanges);
+    private void download(long length, boolean acceptRanges) {
+        initDownloadTasks(length, acceptRanges);
         // start tasks
         for (DownloadTask downloadTask : mDownloadTasks) {
             mExecutor.execute(downloadTask);
         }
     }
 
-    private void initDownloadTasks(boolean acceptRanges) {
+    private void initDownloadTasks(long length, boolean acceptRanges) {
         mDownloadTasks = new LinkedList<>();
         if (acceptRanges) {
-            List<ThreadInfo> threadInfos = getMultiThreadInfos();
+            List<ThreadInfo> threadInfos = getMultiThreadInfos(length);
             for (ThreadInfo info : threadInfos) {
                 mDownloadTasks.add(new MultiDownloadTask(info));
             }
@@ -189,21 +191,22 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         }
     }
 
-    private List<ThreadInfo> getMultiThreadInfos() {
+    private List<ThreadInfo> getMultiThreadInfos(long length) {
         // init threadInfo from db
-        List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(mDownloadInfo.getUrl());
+        final List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(mRequest.getUri().toString());
         if (threadInfos.isEmpty()) {
-            for (int i = 0; i < THREAD_NUM; i++) {
+            final int threadNum = mConfig.getThreadNum();
+            for (int i = 0; i < threadNum; i++) {
                 // calculate average
-                final long average = mDownloadInfo.getLength() / THREAD_NUM;
-                long end = 0;
-                long start = average * i;
-                if (i == THREAD_NUM - 1) {
-                    end = mDownloadInfo.getLength();
+                final long average = length / threadNum;
+                final long start = average * i;
+                final long end;
+                if (i == threadNum - 1) {
+                    end = length;
                 } else {
                     end = start + average - 1;
                 }
-                ThreadInfo threadInfo = new ThreadInfo(i, mDownloadInfo.getUrl(), start, end, 0);
+                ThreadInfo threadInfo = new ThreadInfo(i, mRequest.getUri().toString(), start, end, 0);
                 threadInfos.add(threadInfo);
             }
         }
