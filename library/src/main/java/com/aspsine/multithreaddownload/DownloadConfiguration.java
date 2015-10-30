@@ -1,41 +1,56 @@
 package com.aspsine.multithreaddownload;
 
-import android.content.Context;
-
-import com.aspsine.multithreaddownload.util.FileUtils;
-
-import java.io.File;
-
 /**
  * Created by Aspsine on 2015/7/14.
  */
 public class DownloadConfiguration {
+
     /**
-     * dir of the download file will be stored
+     * read time out
      */
-    public File downloadDir;
+    private int readTimeout;
+
     /**
-     * the max num of thread that  create
+     * connect time out
      */
-    public int maxThreadNum;
+    private int connectTimeout;
+
+    /**
+     * thread number in the pool
+     */
+    private int maxThreadNum;
+
+    /**
+     * thread number for each download
+     */
+    private int threadNum;
+
+    /**
+     * the priority of threads
+     */
+    private int threadPriority;
 
     /**
      * init with default value
      */
     public DownloadConfiguration() {
+
     }
 
-    public DownloadConfiguration(File downloadDir, int maxThreadNum) {
-        this.downloadDir = downloadDir;
-        this.maxThreadNum = maxThreadNum;
+    public int getReadTimeout() {
+        return readTimeout;
     }
 
-    public File getDownloadDir() {
-        return downloadDir;
+    public void setReadTimeout(int readTimeout) {
+        this.readTimeout = readTimeout;
     }
 
-    public void setDownloadDir(File downloadDir) {
-        this.downloadDir = downloadDir;
+    public int getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public void setConnectTimeout(int connectTimeout) {
+        this.connectTimeout = connectTimeout;
     }
 
     public int getMaxThreadNum() {
@@ -44,5 +59,21 @@ public class DownloadConfiguration {
 
     public void setMaxThreadNum(int maxThreadNum) {
         this.maxThreadNum = maxThreadNum;
+    }
+
+    public int getThreadNum() {
+        return threadNum;
+    }
+
+    public void setThreadNum(int threadNum) {
+        this.threadNum = threadNum;
+    }
+
+    public int getThreadPriority() {
+        return threadPriority;
+    }
+
+    public void setThreadPriority(int threadPriority) {
+        this.threadPriority = threadPriority;
     }
 }

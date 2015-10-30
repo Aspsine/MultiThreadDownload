@@ -9,6 +9,8 @@ import java.net.HttpURLConnection;
  */
 public interface CallBack {
 
+    void onStarted();
+
     /**
      * <p> {@link #onConnecting()}
      * <p> this will be the the first method called by

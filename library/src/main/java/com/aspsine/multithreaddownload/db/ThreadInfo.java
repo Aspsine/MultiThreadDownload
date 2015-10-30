@@ -10,6 +10,7 @@ public class ThreadInfo {
     private long end;
     private long finished;
     private int progress;
+    private boolean acceptRanges;
 
     public ThreadInfo() {
     }
@@ -74,5 +75,9 @@ public class ThreadInfo {
 
     public void setProgress(int progress) {
         this.progress = progress;
+    }
+
+    public boolean isAcceptRanges() {
+        return acceptRanges;
     }
 }

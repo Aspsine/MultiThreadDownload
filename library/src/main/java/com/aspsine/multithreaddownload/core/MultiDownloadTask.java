@@ -28,6 +28,7 @@ public class MultiDownloadTask extends DownloadTaskImpl {
         this.mDBManager = dbManager;
     }
 
+
     @Override
     protected void insertIntoDB(ThreadInfo info) {
         if (!mDBManager.exists(info.getUrl(), info.getId())) {
