@@ -1,13 +1,11 @@
 package com.aspsine.multithreaddownload.core;
 
-import android.net.Uri;
 import android.text.TextUtils;
 
 import com.aspsine.multithreaddownload.Constants;
 import com.aspsine.multithreaddownload.DownloadException;
 import com.aspsine.multithreaddownload.architecture.ConnectTask;
 import com.aspsine.multithreaddownload.architecture.DownloadStatus;
-import com.aspsine.multithreaddownload.DownloadInfo;
 import com.aspsine.multithreaddownload.util.L;
 
 import java.io.IOException;
@@ -51,7 +49,7 @@ public class ConnectTaskImpl implements ConnectTask {
     }
 
     @Override
-    public boolean isCancel() {
+    public boolean isCanceled() {
         return mStatus == DownloadStatus.STATUS_CANCELED;
     }
 
@@ -99,7 +97,7 @@ public class ConnectTaskImpl implements ConnectTask {
                 mOnConnectListener.onConnected(System.currentTimeMillis() - startTime, length, isAcceptRanges);
             }
         } catch (IOException e) {
-            if (isCancel()) {
+            if (isCanceled()) {
                 // catch exception will clear interrupt status
                 // we need reset interrupt status
                 currentThread().interrupt();

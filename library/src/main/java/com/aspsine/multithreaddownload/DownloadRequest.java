@@ -1,14 +1,15 @@
 package com.aspsine.multithreaddownload;
 
-import android.net.Uri;
+
+import java.io.File;
 
 /**
  * Created by Aspsine on 2015/4/20.
  */
 public class DownloadRequest {
-    private Uri mUri;
+    private String mUri;
 
-    private Uri mDestinationUri;
+    private File mFolder;
 
     private CharSequence mTitle;
 
@@ -19,20 +20,20 @@ public class DownloadRequest {
     private DownloadRequest() {
     }
 
-    private DownloadRequest(Uri uri, Uri destinationUri, CharSequence title, CharSequence description, boolean scannable) {
+    private DownloadRequest(String uri, File folder, CharSequence title, CharSequence description, boolean scannable) {
         this.mUri = uri;
-        this.mDestinationUri = destinationUri;
+        this.mFolder = folder;
         this.mTitle = title;
         this.mDescription = description;
         this.mScannable = scannable;
     }
 
-    public Uri getUri() {
+    public String getUri() {
         return mUri;
     }
 
-    public Uri getDestinationUri() {
-        return mDestinationUri;
+    public File getFolder() {
+        return mFolder;
     }
 
     public CharSequence getTitle() {
@@ -49,9 +50,9 @@ public class DownloadRequest {
 
     public static class Builder {
 
-        private Uri mUri;
+        private String mUri;
 
-        private Uri mDestinationUri;
+        private File mFolder;
 
         private CharSequence mTitle;
 
@@ -62,13 +63,13 @@ public class DownloadRequest {
         public Builder() {
         }
 
-        public Builder setUri(Uri uri) {
+        public Builder setUri(String uri) {
             this.mUri = uri;
             return this;
         }
 
-        public Builder setDestinationUri(Uri destinationUri) {
-            this.mDestinationUri = destinationUri;
+        public Builder setFolder(File folder) {
+            this.mFolder = folder;
             return this;
         }
 
@@ -88,7 +89,7 @@ public class DownloadRequest {
         }
 
         public DownloadRequest build() {
-            DownloadRequest request = new DownloadRequest(mUri, mDestinationUri, mTitle, mDescription, mScannable);
+            DownloadRequest request = new DownloadRequest(mUri, mFolder, mTitle, mDescription, mScannable);
             return request;
         }
     }

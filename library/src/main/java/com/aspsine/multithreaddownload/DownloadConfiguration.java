@@ -5,15 +5,9 @@ package com.aspsine.multithreaddownload;
  */
 public class DownloadConfiguration {
 
-    /**
-     * read time out
-     */
-    private int readTimeout;
+    public static final int DEFAULT_MAX_THREAD_NUMBER = 10;
 
-    /**
-     * connect time out
-     */
-    private int connectTimeout;
+    public static final int DEFAULT_THREAD_NUMBER = 1;
 
     /**
      * thread number in the pool
@@ -25,32 +19,13 @@ public class DownloadConfiguration {
      */
     private int threadNum;
 
-    /**
-     * the priority of threads
-     */
-    private int threadPriority;
 
     /**
      * init with default value
      */
     public DownloadConfiguration() {
-
-    }
-
-    public int getReadTimeout() {
-        return readTimeout;
-    }
-
-    public void setReadTimeout(int readTimeout) {
-        this.readTimeout = readTimeout;
-    }
-
-    public int getConnectTimeout() {
-        return connectTimeout;
-    }
-
-    public void setConnectTimeout(int connectTimeout) {
-        this.connectTimeout = connectTimeout;
+        maxThreadNum = DEFAULT_MAX_THREAD_NUMBER;
+        threadNum = DEFAULT_THREAD_NUMBER;
     }
 
     public int getMaxThreadNum() {
@@ -67,13 +42,5 @@ public class DownloadConfiguration {
 
     public void setThreadNum(int threadNum) {
         this.threadNum = threadNum;
-    }
-
-    public int getThreadPriority() {
-        return threadPriority;
-    }
-
-    public void setThreadPriority(int threadPriority) {
-        this.threadPriority = threadPriority;
     }
 }

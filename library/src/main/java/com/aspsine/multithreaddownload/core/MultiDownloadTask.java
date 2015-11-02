@@ -31,7 +31,7 @@ public class MultiDownloadTask extends DownloadTaskImpl {
 
     @Override
     protected void insertIntoDB(ThreadInfo info) {
-        if (!mDBManager.exists(info.getUrl(), info.getId())) {
+        if (!mDBManager.exists(info.getUri(), info.getId())) {
             mDBManager.insert(info);
         }
     }
@@ -43,7 +43,7 @@ public class MultiDownloadTask extends DownloadTaskImpl {
 
     @Override
     protected void updateDBProgress(ThreadInfo info) {
-        mDBManager.update(info.getUrl(), info.getId(), info.getFinished());
+        mDBManager.update(info.getUri(), info.getId(), info.getFinished());
     }
 
     @Override
@@ -56,13 +56,13 @@ public class MultiDownloadTask extends DownloadTaskImpl {
     }
 
     @Override
-    protected RandomAccessFile getFile(ThreadInfo threadInfo, DownloadInfo downloadInfo) throws IOException {
-        File file = new File(downloadInfo.getDir(), downloadInfo.getName());
+    protected RandomAccessFile getFile(File dir, String name, long offset) throws IOException {
+        File file = new File(dir, name);
         RandomAccessFile raf = new RandomAccessFile(file, "rwd");
-        long start = threadInfo.getStart() + threadInfo.getFinished();
-        raf.seek(start);
+        raf.seek(offset);
         return raf;
     }
+
 
     @Override
     protected String getTag() {

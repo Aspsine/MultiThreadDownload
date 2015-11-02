@@ -5,7 +5,7 @@ package com.aspsine.multithreaddownload.db;
  */
 public class ThreadInfo {
     private int id;
-    private String url;
+    private String uri;
     private long start;
     private long end;
     private long finished;
@@ -15,18 +15,18 @@ public class ThreadInfo {
     public ThreadInfo() {
     }
 
-    public ThreadInfo(int id, String url, long start, long end, long finished) {
+    public ThreadInfo(int id, String uri, long start, long end, long finished) {
         this.id = id;
-        this.url = url;
+        this.uri = uri;
         this.start = start;
         this.end = end;
         this.finished = finished;
     }
 
-    public ThreadInfo(int id, String url, int finished) {
+    public ThreadInfo(int id, String uri, int finished) {
         this.id = id;
-        this.url = url;
-        this.finished = 0;
+        this.uri = uri;
+        this.finished = finished;
     }
 
     public int getId() {
@@ -37,12 +37,12 @@ public class ThreadInfo {
         this.id = id;
     }
 
-    public String getUrl() {
-        return url;
+    public String getUri() {
+        return uri;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
     public long getStart() {
@@ -79,5 +79,9 @@ public class ThreadInfo {
 
     public boolean isAcceptRanges() {
         return acceptRanges;
+    }
+
+    public void setAcceptRanges(boolean acceptRanges) {
+        this.acceptRanges = acceptRanges;
     }
 }

@@ -24,7 +24,7 @@ public interface ConnectTask extends Runnable {
 
     boolean isConnected();
 
-    boolean isCancel();
+    boolean isCanceled();
 
     boolean isFailed();
 

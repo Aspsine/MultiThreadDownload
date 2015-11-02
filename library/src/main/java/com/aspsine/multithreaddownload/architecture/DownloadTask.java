@@ -33,7 +33,7 @@ public interface DownloadTask extends Runnable {
 
     boolean isCanceled();
 
-    boolean isFailure();
+    boolean isFailed();
 
     @Override
     void run();

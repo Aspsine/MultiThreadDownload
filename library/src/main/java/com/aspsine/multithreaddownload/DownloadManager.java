@@ -72,18 +72,14 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
     public void init(Context context, DownloadConfiguration config) {
         if (config == null) {
             config = new DownloadConfiguration();
-        }
-        if (config.maxThreadNum <= 0) {
-            //default value
-            config.maxThreadNum = 10;
-        }
-        if (config.downloadDir == null) {
-            //default value
-            config.downloadDir = FileUtils.getDefaultDownloadDir(context);
+        } else {
+            if (config.getThreadNum() > config.getMaxThreadNum()) {
+                throw new IllegalArgumentException("thread num must < max thread num");
+            }
         }
         mConfig = config;
         mDBManager = DataBaseManager.getInstance(context);
-        mExecutorService = Executors.newFixedThreadPool(config.maxThreadNum);
+        mExecutorService = Executors.newFixedThreadPool(mConfig.getMaxThreadNum());
         mDelivery = new DownloadStatusDeliveryImpl(new Handler(Looper.getMainLooper()));
     }
 
@@ -98,7 +94,7 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
         final String key = createKey(tag);
         if (check(key)) {
             DownloadResponse response = new DownloadResponseImpl(mDelivery, callBack);
-            Downloader downloader = new DownloaderImpl(request, response, mExecutorService, mDBManager, key, this);
+            Downloader downloader = new DownloaderImpl(request, response, mExecutorService, mDBManager, key, mConfig, this);
             mDownloaderMap.put(tag, downloader);
             downloader.start();
         }

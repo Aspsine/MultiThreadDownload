@@ -41,8 +41,8 @@ public class SingleDownloadTask extends DownloadTaskImpl {
     }
 
     @Override
-    protected RandomAccessFile getFile(ThreadInfo threadInfo, DownloadInfo downloadInfo) throws IOException {
-        File file = new File(downloadInfo.getDir(), downloadInfo.getName());
+    protected RandomAccessFile getFile(File dir, String name, long offset) throws IOException {
+        File file = new File(dir, name);
         RandomAccessFile raf = new RandomAccessFile(file, "rwd");
         raf.seek(0);
         return raf;

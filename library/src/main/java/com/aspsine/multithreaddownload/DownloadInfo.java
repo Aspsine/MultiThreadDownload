@@ -6,23 +6,24 @@ import java.io.Serializable;
 /**
  * Created by aspsine on 15-4-19.
  */
-public class DownloadInfo implements Serializable {
+public class DownloadInfo {
     private String name;
-    private String url;
+    private String uri;
     private File dir;
     private int progress;
     private long length;
     private long finished;
-    private boolean isSupportRange;
+    private boolean acceptRanges;
 
-    public DownloadInfo(String name, String url, File dir) {
-        this.name = name;
-        this.url = url;
-        this.dir = dir;
+    private int status;
+
+    public DownloadInfo() {
     }
 
-    public DownloadInfo(){
-
+    public DownloadInfo(String name, String uri, File dir) {
+        this.name = name;
+        this.uri = uri;
+        this.dir = dir;
     }
 
     public String getName() {
@@ -33,12 +34,12 @@ public class DownloadInfo implements Serializable {
         this.name = name;
     }
 
-    public String getUrl() {
-        return url;
+    public String getUri() {
+        return uri;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
     public File getDir() {
@@ -49,6 +50,14 @@ public class DownloadInfo implements Serializable {
         this.dir = dir;
     }
 
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
+    }
+
     public long getLength() {
         return length;
     }
@@ -57,27 +66,19 @@ public class DownloadInfo implements Serializable {
         this.length = length;
     }
 
-    public int getProgress() {
-        return progress;
-    }
-
-    public synchronized void setProgress(int progress) {
-        this.progress = progress;
-    }
-
     public long getFinished() {
         return finished;
     }
 
-    public synchronized void setFinished(long finished) {
+    public void setFinished(long finished) {
         this.finished = finished;
     }
 
-    public boolean isSupportRange() {
-        return isSupportRange;
+    public boolean isAcceptRanges() {
+        return acceptRanges;
     }
 
-    public void setIsSupportRange(boolean isSupportRange) {
-        this.isSupportRange = isSupportRange;
+    public void setAcceptRanges(boolean acceptRanges) {
+        this.acceptRanges = acceptRanges;
     }
 }

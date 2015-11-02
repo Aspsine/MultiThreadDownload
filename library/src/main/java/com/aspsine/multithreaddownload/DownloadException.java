@@ -4,36 +4,50 @@ package com.aspsine.multithreaddownload;
  * Created by Aspsine on 2015/7/15.
  */
 public class DownloadException extends Exception {
-    private String mErrorMessage;
-    private String mErrorCode;
+    private String errorMessage;
+    private int errorCode;
+
+
+    public DownloadException() {
+    }
 
     public DownloadException(String detailMessage) {
         super(detailMessage);
-        this.mErrorMessage = detailMessage;
+        errorMessage = detailMessage;
+    }
+
+    public DownloadException(int errorCode, String detailMessage) {
+        this(detailMessage);
+        this.errorCode = errorCode;
+    }
+
+    public DownloadException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
+        errorMessage = detailMessage;
+    }
+
+    public DownloadException(int errorCode, String detailMessage, Throwable throwable) {
+        this(detailMessage, throwable);
+        this.errorCode = errorCode;
     }
 
     public DownloadException(Throwable throwable) {
         super(throwable);
     }
 
-    public DownloadException(String detailMessage, Throwable throwable) {
-        super(detailMessage, throwable);
-        this.mErrorMessage = detailMessage;
-    }
-
     public String getErrorMessage() {
-        return mErrorMessage;
+        return errorMessage;
     }
 
     public void setErrorMessage(String errorMessage) {
-        this.mErrorMessage = errorMessage;
+        this.errorMessage = errorMessage;
     }
 
-    public String getErrorCode() {
-        return mErrorCode;
+    public int getErrorCode() {
+        return errorCode;
     }
 
-    public void setErrorCode(String errorCode) {
-        this.mErrorCode = errorCode;
+    public void setErrorCode(int errorCode) {
+        this.errorCode = errorCode;
     }
 }

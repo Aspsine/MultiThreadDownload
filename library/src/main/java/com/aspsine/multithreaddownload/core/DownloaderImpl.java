@@ -12,6 +12,7 @@ import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.DownloadInfo;
 import com.aspsine.multithreaddownload.db.ThreadInfo;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -51,10 +52,13 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         mTag = key;
         mConfig = config;
         mListener = listener;
+
+        init();
     }
 
     private void init() {
-        //TODO restore last downloadInfo
+        mDownloadInfo = new DownloadInfo(mRequest.getTitle().toString(), mRequest.getUri(), mRequest.getFolder());
+
     }
 
     @Override
@@ -183,11 +187,11 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         if (acceptRanges) {
             List<ThreadInfo> threadInfos = getMultiThreadInfos(length);
             for (ThreadInfo info : threadInfos) {
-                mDownloadTasks.add(new MultiDownloadTask(info));
+                mDownloadTasks.add(new MultiDownloadTask(mDownloadInfo, info, mDBManager, this));
             }
         } else {
-            ThreadInfo threadInfo = getSingleThreadInfo();
-            mDownloadTasks.add(new SingleDownloadTask(threadInfo));
+            ThreadInfo info = getSingleThreadInfo();
+            mDownloadTasks.add(new SingleDownloadTask(mDownloadInfo, info, this));
         }
     }
 
@@ -232,7 +236,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     private boolean isAllFailed() {
         boolean allFailed = true;
         for (DownloadTask task : mDownloadTasks) {
-            if (!task.isFailure()) {
+            if (!task.isFailed()) {
                 allFailed = false;
                 break;
             }
