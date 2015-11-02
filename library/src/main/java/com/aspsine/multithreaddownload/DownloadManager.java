@@ -3,6 +3,7 @@ package com.aspsine.multithreaddownload;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 
 import com.aspsine.multithreaddownload.architecture.DownloadResponse;
 import com.aspsine.multithreaddownload.architecture.Downloader;
@@ -35,12 +36,6 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
 
     private DataBaseManager mDBManager;
 
-    /**
-     * key: Tag
-     * value:DownloadRequest
-     */
-    private Map<String, DownloadRequest> mDownloadRequestMap;
-
     private Map<String, Downloader> mDownloaderMap;
 
     private DownloadConfiguration mConfig;
@@ -62,20 +57,16 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
      * private construction
      */
     private DownloadManager() {
-        mDownloadRequestMap = new LinkedHashMap<String, DownloadRequest>();
+        mDownloaderMap = new LinkedHashMap<String, Downloader>();
     }
 
     public void init(Context context) {
-        init(context, null);
+        init(context, new DownloadConfiguration());
     }
 
-    public void init(Context context, DownloadConfiguration config) {
-        if (config == null) {
-            config = new DownloadConfiguration();
-        } else {
-            if (config.getThreadNum() > config.getMaxThreadNum()) {
-                throw new IllegalArgumentException("thread num must < max thread num");
-            }
+    public void init(Context context, @NonNull DownloadConfiguration config) {
+        if (config.getThreadNum() > config.getMaxThreadNum()) {
+            throw new IllegalArgumentException("thread num must < max thread num");
         }
         mConfig = config;
         mDBManager = DataBaseManager.getInstance(context);
@@ -95,26 +86,32 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
         if (check(key)) {
             DownloadResponse response = new DownloadResponseImpl(mDelivery, callBack);
             Downloader downloader = new DownloaderImpl(request, response, mExecutorService, mDBManager, key, mConfig, this);
-            mDownloaderMap.put(tag, downloader);
+            mDownloaderMap.put(key, downloader);
             downloader.start();
         }
     }
 
     public void pause(String tag) {
         String key = createKey(tag);
-        Downloader downloader = mDownloaderMap.get(key);
-        if (downloader != null) {
-            if (downloader.isRunning()) {
-                downloader.pause();
+        if (mDownloaderMap.containsKey(key)) {
+            Downloader downloader = mDownloaderMap.get(key);
+            if (downloader != null) {
+                if (downloader.isRunning()) {
+                    downloader.pause();
+                }
             }
+            mDownloaderMap.remove(key);
         }
     }
 
     public void cancel(String tag) {
         String key = createKey(tag);
-        Downloader downloader = mDownloaderMap.get(key);
-        if (downloader != null) {
-            downloader.cancel();
+        if (mDownloaderMap.containsKey(key)) {
+            Downloader downloader = mDownloaderMap.get(key);
+            if (downloader != null) {
+                downloader.cancel();
+            }
+            mDownloaderMap.remove(key);
         }
     }
 
@@ -183,7 +180,7 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
                     L.w("Task has been started!");
                     return false;
                 } else {
-                    throw new IllegalStateException("Downloader with same has not been destroyed!");
+                    throw new IllegalStateException("Downloader instance with same tag has not been destroyed!");
                 }
             }
         }

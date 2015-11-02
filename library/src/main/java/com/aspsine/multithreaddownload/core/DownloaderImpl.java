@@ -58,7 +58,6 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     private void init() {
         mDownloadInfo = new DownloadInfo(mRequest.getTitle().toString(), mRequest.getUri(), mRequest.getFolder());
-
     }
 
     @Override
