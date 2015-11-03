@@ -1,6 +1,7 @@
 package com.aspsine.multithreaddownload.architecture;
 
 import com.aspsine.multithreaddownload.CallBack;
+import com.aspsine.multithreaddownload.DownloadException;
 
 /**
  * Created by Aspsine on 2015/7/15.
@@ -16,10 +17,13 @@ public class DownloadStatus {
     public static final int STATUS_FAILED = 108;
 
     private int status;
+    private long time;
     private long length;
     private long finished;
-    private boolean isRangeSupport;
-    private Exception exception;
+    private int percent;
+    private long speed;
+    private boolean acceptRanges;
+    private DownloadException exception;
 
     private CallBack callBack;
 
@@ -29,6 +33,14 @@ public class DownloadStatus {
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
     }
 
     public long getLength() {
@@ -47,19 +59,35 @@ public class DownloadStatus {
         this.finished = finished;
     }
 
-    public boolean isRangeSupport() {
-        return isRangeSupport;
+    public int getPercent() {
+        return percent;
     }
 
-    public void setIsRangeSupport(boolean isRangeSupport) {
-        this.isRangeSupport = isRangeSupport;
+    public void setPercent(int percent) {
+        this.percent = percent;
+    }
+
+    public long getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(long speed) {
+        this.speed = speed;
+    }
+
+    public boolean isAcceptRanges() {
+        return acceptRanges;
+    }
+
+    public void setAcceptRanges(boolean acceptRanges) {
+        this.acceptRanges = acceptRanges;
     }
 
     public Exception getException() {
         return exception;
     }
 
-    public void setException(Exception exception) {
+    public void setException(DownloadException exception) {
         this.exception = exception;
     }
 

@@ -1,5 +1,7 @@
 package com.aspsine.multithreaddownload.architecture;
 
+import com.aspsine.multithreaddownload.DownloadException;
+
 /**
  * Created by Aspsine on 2015/10/28.
  */
@@ -9,13 +11,13 @@ public interface DownloadResponse {
 
     void onConnecting();
 
-    void onConnected(long time, long length, boolean isAcceptRanges);
+    void onConnected(long time, long length, boolean acceptRanges);
 
-    void onConnectFailed(Exception e);
+    void onConnectFailed(DownloadException e);
 
     void onConnectCanceled();
 
-    void onDownloadProgress();
+    void onDownloadProgress(long finished, long length, int percent, long speed);
 
     void onDownloadCompleted();
 
@@ -23,5 +25,5 @@ public interface DownloadResponse {
 
     void onDownloadCanceled();
 
-    void onDownloadFailed(Exception e);
+    void onDownloadFailed(DownloadException e);
 }

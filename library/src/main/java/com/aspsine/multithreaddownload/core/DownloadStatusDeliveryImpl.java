@@ -41,17 +41,17 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
         @Override
         public void run() {
             switch (mDownloadStatus.getStatus()) {
-                case DownloadStatus.STATUS_WAITING:
+                case DownloadStatus.STATUS_START:
+                    mCallBack.onStarted();
+                    break;
+                case DownloadStatus.STATUS_CONNECTING:
                     mCallBack.onConnecting();
                     break;
                 case DownloadStatus.STATUS_CONNECTED:
-                    mCallBack.onConnected(mDownloadStatus.getLength(), mDownloadStatus.isRangeSupport());
+                    mCallBack.onConnected(mDownloadStatus.getLength(), mDownloadStatus.isAcceptRanges());
                     break;
                 case DownloadStatus.STATUS_PROGRESS:
-                    final long finished = mDownloadStatus.getFinished();
-                    final long length = mDownloadStatus.getLength();
-                    final int percent = (int) (finished * 100 / length);
-                    mCallBack.onProgress(finished, length, percent);
+                    mCallBack.onProgress(mDownloadStatus.getFinished(), mDownloadStatus.getLength(), mDownloadStatus.getPercent(), mDownloadStatus.getSpeed());
                     break;
                 case DownloadStatus.STATUS_COMPLETED:
                     mCallBack.onCompleted();

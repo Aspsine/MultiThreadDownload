@@ -29,42 +29,6 @@ public class DownloadService extends Service{
 
     private void download(AppInfo appInfo){
 
-        DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), null, new CallBack() {
-            @Override
-            public void onConnecting() {
-                Notification notification = new NotificationCompat.Builder(getApplicationContext()).build();
-            }
-
-            @Override
-            public void onConnected(long total, boolean isRangeSupport) {
-
-            }
-
-            @Override
-            public void onProgress(long finished, long total, int progress) {
-
-            }
-
-            @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onDownloadPaused() {
-
-            }
-
-            @Override
-            public void onDownloadCanceled() {
-
-            }
-
-            @Override
-            public void onFailed(DownloadException e) {
-
-            }
-        });
     }
 
     @Override

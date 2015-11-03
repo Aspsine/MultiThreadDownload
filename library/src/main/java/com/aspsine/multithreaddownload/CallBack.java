@@ -33,14 +33,15 @@ public interface CallBack {
     void onConnected(long total, boolean isRangeSupport);
 
     /**
-     * <p> {@link #onProgress(long, long, int)}
+     * <p>
      * <p> progress callback.
      *
      * @param finished the downloaded length of the file
      * @param total    the total length of the file same value with method {@link }
      * @param progress the percent of progress (finished/total)*100
+     * @param speed
      */
-    void onProgress(long finished, long total, int progress);
+    void onProgress(long finished, long total, int progress, long speed);
 
     /**
      * <p>{@link #onCompleted()}

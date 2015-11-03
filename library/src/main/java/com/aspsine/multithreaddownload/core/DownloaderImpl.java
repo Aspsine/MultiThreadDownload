@@ -44,6 +44,10 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     private List<DownloadTask> mDownloadTasks;
 
+    private long mLastTime;
+
+    private long mLastFinished;
+
     public DownloaderImpl(DownloadRequest request, DownloadResponse response, Executor executor, DataBaseManager dbManager, String key, DownloadConfiguration config, OnDownloaderDestroyedListener listener) {
         mRequest = request;
         mResponse = response;
@@ -111,6 +115,10 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     public void onConnected(long time, long length, boolean isAcceptRanges) {
         mStatus = DownloadStatus.STATUS_CONNECTED;
         mResponse.onConnected(time, length, isAcceptRanges);
+
+        mLastTime = System.currentTimeMillis();
+        mLastFinished = 0;
+
         download(length, isAcceptRanges);
     }
 
@@ -133,7 +141,21 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     @Override
     public void onDownloadProgress(long finished, long length) {
         mStatus = DownloadStatus.STATUS_PROGRESS;
-        mResponse.onDownloadProgress();
+        // calculate percent
+        final int percent = (int) (finished * 100 / length);
+        // calculate speed
+        final long current = System.currentTimeMillis();
+        final long timeDelta = current - mLastTime;
+        final long byteDelta = finished - mLastFinished;
+        final long speed;
+        if (timeDelta > 0 && byteDelta > 0) {
+            speed = (byteDelta * 1024) / timeDelta;
+        } else {
+            speed = 0;
+        }
+        mResponse.onDownloadProgress(finished, length, percent, speed);
+        mLastTime = current;
+        mLastFinished = finished;
     }
 
     @Override
@@ -169,7 +191,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     }
 
     private void connect() {
-        mConnectTask = new ConnectTaskImpl(mRequest.getUri().toString(), this);
+        mConnectTask = new ConnectTaskImpl(mRequest.getUri(), this);
         mExecutor.execute(mConnectTask);
     }
 
@@ -181,6 +203,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         }
     }
 
+    //TODO
     private void initDownloadTasks(long length, boolean acceptRanges) {
         mDownloadTasks = new LinkedList<>();
         if (acceptRanges) {
@@ -194,6 +217,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         }
     }
 
+    //TODO
     private List<ThreadInfo> getMultiThreadInfos(long length) {
         // init threadInfo from db
         final List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(mRequest.getUri().toString());
@@ -209,15 +233,16 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
                 } else {
                     end = start + average - 1;
                 }
-                ThreadInfo threadInfo = new ThreadInfo(i, mRequest.getUri().toString(), start, end, 0);
+                ThreadInfo threadInfo = new ThreadInfo(i, mRequest.getUri(), start, end, 0);
                 threadInfos.add(threadInfo);
             }
         }
         return threadInfos;
     }
 
+    //TODO
     private ThreadInfo getSingleThreadInfo() {
-        ThreadInfo threadInfo = new ThreadInfo(0, mRequest.getUri().toString(), 0);
+        ThreadInfo threadInfo = new ThreadInfo(0, mRequest.getUri(), 0);
         return threadInfo;
     }
 

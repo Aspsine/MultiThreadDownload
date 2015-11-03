@@ -12,6 +12,7 @@ import android.widget.ListView;
 import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.DownloadManager;
 import com.aspsine.multithreaddownload.DownloadException;
+import com.aspsine.multithreaddownload.DownloadRequest;
 import com.aspsine.multithreaddownload.demo.DataSource;
 import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
@@ -103,7 +104,16 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
     }
 
     private void download(final int position, final AppInfo appInfo) {
-        DownloadManager.getInstance().download(appInfo.getName() + ".apk", appInfo.getUrl(), dir, new CallBack() {
+        DownloadRequest request = new DownloadRequest.Builder()
+                .setTitle(appInfo.getName())
+                .setUri(appInfo.getUrl())
+                .build();
+        DownloadManager.getInstance().download(request, appInfo.getUrl(), new CallBack() {
+
+            @Override
+            public void onStarted() {
+
+            }
 
             @Override
             public void onConnecting() {
@@ -126,7 +136,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
             }
 
             @Override
-            public void onProgress(long finished, long total, int progress) {
+            public void onProgress(long finished, long total, int progress, long speed) {
                 String downloadPerSize = getDownloadPerSize(finished, total);
                 appInfo.setProgress(progress);
                 appInfo.setDownloadPerSize(downloadPerSize);
@@ -139,6 +149,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                     holder.btnDownload.setText(appInfo.getButtonText());
                 }
             }
+
 
             @Override
             public void onCompleted() {
