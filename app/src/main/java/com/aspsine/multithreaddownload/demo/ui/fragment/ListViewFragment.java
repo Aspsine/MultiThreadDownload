@@ -105,8 +105,9 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
 
     private void download(final int position, final AppInfo appInfo) {
         DownloadRequest request = new DownloadRequest.Builder()
-                .setTitle(appInfo.getName())
+                .setTitle(appInfo.getName() + ".apk")
                 .setUri(appInfo.getUrl())
+                .setFolder(dir)
                 .build();
         DownloadManager.getInstance().download(request, appInfo.getUrl(), new CallBack() {
 

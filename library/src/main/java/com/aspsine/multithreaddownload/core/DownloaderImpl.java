@@ -119,6 +119,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         mLastTime = System.currentTimeMillis();
         mLastFinished = 0;
 
+        mDownloadInfo.setLength(length);
         download(length, isAcceptRanges);
     }
 

@@ -89,7 +89,10 @@ public abstract class DownloadTaskImpl implements DownloadTask {
         try {
             mStatus = DownloadStatus.STATUS_PROGRESS;
             executeDownload();
-            mStatus = DownloadStatus.STATUS_COMPLETED;
+            synchronized (mOnDownloadListener){
+                mStatus = DownloadStatus.STATUS_COMPLETED;
+                mOnDownloadListener.onDownloadCompleted();
+            }
         } catch (DownloadException e) {
             handleDownloadException(e);
         }
@@ -99,16 +102,19 @@ public abstract class DownloadTaskImpl implements DownloadTask {
         switch (e.getErrorCode()) {
             case DownloadStatus.STATUS_FAILED:
                 synchronized (mOnDownloadListener) {
+                    mStatus = DownloadStatus.STATUS_FAILED;
                     mOnDownloadListener.onDownloadFailed(e);
                 }
                 break;
             case DownloadStatus.STATUS_PAUSED:
                 synchronized (mOnDownloadListener) {
+                    mStatus = DownloadStatus.STATUS_PAUSED;
                     mOnDownloadListener.onDownloadPaused();
                 }
                 break;
             case DownloadStatus.STATUS_CANCELED:
                 synchronized (mOnDownloadListener) {
+                    mStatus = DownloadStatus.STATUS_CANCELED;
                     mOnDownloadListener.onDownloadCanceled();
                 }
                 break;
@@ -200,6 +206,11 @@ public abstract class DownloadTaskImpl implements DownloadTask {
 
             try {
                 raf.write(buffer, 0, len);
+                mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
+                synchronized (mOnDownloadListener) {
+                    mDownloadInfo.setFinished(mDownloadInfo.getFinished() + len);
+                    mOnDownloadListener.onDownloadProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
+                }
             } catch (IOException e) {
                 throw new DownloadException(DownloadStatus.STATUS_FAILED, "Fail write buffer to file", e);
             }
