@@ -1,5 +1,7 @@
 package com.aspsine.multithreaddownload.core;
 
+import android.util.Log;
+
 import com.aspsine.multithreaddownload.DownloadConfiguration;
 import com.aspsine.multithreaddownload.DownloadException;
 import com.aspsine.multithreaddownload.DownloadRequest;
@@ -47,6 +49,8 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     private long mLastTime;
 
     private long mLastFinished;
+
+    private long mSpeed;
 
     public DownloaderImpl(DownloadRequest request, DownloadResponse response, Executor executor, DataBaseManager dbManager, String key, DownloadConfiguration config, OnDownloaderDestroyedListener listener) {
         mRequest = request;
@@ -148,11 +152,11 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         final long current = System.currentTimeMillis();
         final long timeDelta = current - mLastTime;
         final long byteDelta = finished - mLastFinished;
-        final long speed;
+
+        long speed = 0;
         if (timeDelta > 0 && byteDelta > 0) {
-            speed = (byteDelta * 1024) / timeDelta;
-        } else {
-            speed = 0;
+            speed = ((byteDelta * 1000) / timeDelta) / 1024;
+            Log.i("onProgress", "timeDelta = " + timeDelta);
         }
         mResponse.onDownloadProgress(finished, length, percent, speed);
         mLastTime = current;
@@ -164,6 +168,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         if (isAllComplete()) {
             mStatus = DownloadStatus.STATUS_COMPLETED;
             mResponse.onDownloadCompleted();
+            onDestroy();
         }
     }
 
