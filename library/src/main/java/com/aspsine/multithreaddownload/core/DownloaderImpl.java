@@ -161,6 +161,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     @Override
     public void onDownloadCompleted() {
         if (isAllComplete()) {
+            deleteFromDB();
             mStatus = DownloadStatus.STATUS_COMPLETED;
             mResponse.onDownloadCompleted();
             onDestroy();
@@ -179,6 +180,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     @Override
     public void onDownloadCanceled() {
         if (isAllCanceled()) {
+            deleteFromDB();
             mStatus = DownloadStatus.STATUS_CANCELED;
             mResponse.onDownloadCanceled();
             onDestroy();
@@ -292,5 +294,9 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
             }
         }
         return allCanceled;
+    }
+
+    private void deleteFromDB(){
+        mDBManager.delete(mTag);
     }
 }
