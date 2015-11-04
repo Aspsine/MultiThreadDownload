@@ -10,8 +10,9 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.aspsine.multithreaddownload.CallBack;
-import com.aspsine.multithreaddownload.DownloadManager;
 import com.aspsine.multithreaddownload.DownloadException;
+import com.aspsine.multithreaddownload.DownloadInfo;
+import com.aspsine.multithreaddownload.DownloadManager;
 import com.aspsine.multithreaddownload.DownloadRequest;
 import com.aspsine.multithreaddownload.demo.DataSource;
 import com.aspsine.multithreaddownload.demo.R;
@@ -19,7 +20,6 @@ import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
 import com.aspsine.multithreaddownload.demo.util.Utils;
-import com.aspsine.multithreaddownload.DownloadInfo;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -88,12 +88,10 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
             if (isCurrentListViewItemVisible(position)) {
                 DownloadManager.getInstance().pause(appInfo.getUrl());
             }
-            return;
         } else if (appInfo.getStatus() == AppInfo.STATUS_COMPLETE) {
             if (isCurrentListViewItemVisible(position)) {
                 Utils.installApp(getActivity(), new File(dir, appInfo.getName() + ".apk"));
             }
-            return;
         } else if (appInfo.getStatus() == AppInfo.STATUS_INSTALLED) {
             if (isCurrentListViewItemVisible(position)) {
                 Utils.unInstallApp(getActivity(), appInfo.getPackageName());
@@ -104,13 +102,12 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
     }
 
     private void download(final int position, final AppInfo appInfo) {
-        DownloadRequest request = new DownloadRequest.Builder()
+        final DownloadRequest request = new DownloadRequest.Builder()
                 .setTitle(appInfo.getName() + ".apk")
                 .setUri(appInfo.getUrl())
                 .setFolder(dir)
                 .build();
-        DownloadManager.getInstance().download(request, appInfo.getUrl(), new CallBack() {
-
+        final CallBack callBack = new CallBack() {
             @Override
             public void onStarted() {
 
@@ -205,7 +202,8 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                 }
                 e.printStackTrace();
             }
-        });
+        };
+        DownloadManager.getInstance().download(request, appInfo.getUrl(), callBack);
     }
 
     private String getDownloadPerSize(long finished, long total) {

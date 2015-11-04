@@ -36,10 +36,10 @@ public abstract class DownloadTaskImpl implements DownloadTask {
 
     private volatile int mStatus;
 
-    public DownloadTaskImpl(DownloadInfo mDownloadInfo, ThreadInfo mThreadInfo, OnDownloadListener mOnDownloadListener) {
-        this.mDownloadInfo = mDownloadInfo;
-        this.mThreadInfo = mThreadInfo;
-        this.mOnDownloadListener = mOnDownloadListener;
+    public DownloadTaskImpl(DownloadInfo downloadInfo, ThreadInfo threadInfo, OnDownloadListener listener) {
+        this.mDownloadInfo = downloadInfo;
+        this.mThreadInfo = threadInfo;
+        this.mOnDownloadListener = listener;
 
         this.mTag = getTag();
         if (TextUtils.isEmpty(mTag)) {
@@ -89,7 +89,7 @@ public abstract class DownloadTaskImpl implements DownloadTask {
         try {
             mStatus = DownloadStatus.STATUS_PROGRESS;
             executeDownload();
-            synchronized (mOnDownloadListener){
+            synchronized (mOnDownloadListener) {
                 mStatus = DownloadStatus.STATUS_COMPLETED;
                 mOnDownloadListener.onDownloadCompleted();
             }
@@ -221,15 +221,11 @@ public abstract class DownloadTaskImpl implements DownloadTask {
     private void checkPausedOrCanceled() throws DownloadException {
         if (isCanceled()) {
             // cancel
-            synchronized (mThreadInfo) {
-                throw new DownloadException(DownloadStatus.STATUS_CANCELED, "Download paused!");
-            }
+            throw new DownloadException(DownloadStatus.STATUS_CANCELED, "Download paused!");
         } else if (isPaused()) {
             // pause
             updateDBProgress(mThreadInfo);
-            synchronized (mThreadInfo) {
-                throw new DownloadException(DownloadStatus.STATUS_PAUSED, "Download canceled!");
-            }
+            throw new DownloadException(DownloadStatus.STATUS_PAUSED, "Download canceled!");
         }
     }
 

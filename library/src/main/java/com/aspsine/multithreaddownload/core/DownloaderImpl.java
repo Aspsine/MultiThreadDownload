@@ -1,9 +1,8 @@
 package com.aspsine.multithreaddownload.core;
 
-import android.util.Log;
-
 import com.aspsine.multithreaddownload.DownloadConfiguration;
 import com.aspsine.multithreaddownload.DownloadException;
+import com.aspsine.multithreaddownload.DownloadInfo;
 import com.aspsine.multithreaddownload.DownloadRequest;
 import com.aspsine.multithreaddownload.architecture.ConnectTask;
 import com.aspsine.multithreaddownload.architecture.DownloadResponse;
@@ -11,10 +10,8 @@ import com.aspsine.multithreaddownload.architecture.DownloadStatus;
 import com.aspsine.multithreaddownload.architecture.DownloadTask;
 import com.aspsine.multithreaddownload.architecture.Downloader;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
-import com.aspsine.multithreaddownload.DownloadInfo;
 import com.aspsine.multithreaddownload.db.ThreadInfo;
 
-import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -49,8 +46,6 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     private long mLastTime;
 
     private long mLastFinished;
-
-    private long mSpeed;
 
     public DownloaderImpl(DownloadRequest request, DownloadResponse response, Executor executor, DataBaseManager dbManager, String key, DownloadConfiguration config, OnDownloaderDestroyedListener listener) {
         mRequest = request;
@@ -123,6 +118,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         mLastTime = System.currentTimeMillis();
         mLastFinished = 0;
 
+        mDownloadInfo.setAcceptRanges(isAcceptRanges);
         mDownloadInfo.setLength(length);
         download(length, isAcceptRanges);
     }
@@ -156,7 +152,6 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         long speed = 0;
         if (timeDelta > 0 && byteDelta > 0) {
             speed = ((byteDelta * 1000) / timeDelta) / 1024;
-            Log.i("onProgress", "timeDelta = " + timeDelta);
         }
         mResponse.onDownloadProgress(finished, length, percent, speed);
         mLastTime = current;
@@ -177,6 +172,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         if (isAllPaused()) {
             mStatus = DownloadStatus.STATUS_PAUSED;
             mResponse.onDownloadPaused();
+            onDestroy();
         }
     }
 
@@ -185,6 +181,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         if (isAllCanceled()) {
             mStatus = DownloadStatus.STATUS_CANCELED;
             mResponse.onDownloadCanceled();
+            onDestroy();
         }
     }
 
@@ -193,6 +190,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         if (isAllFailed()) {
             mStatus = DownloadStatus.STATUS_FAILED;
             mResponse.onDownloadFailed(de);
+            onDestroy();
         }
     }
 
