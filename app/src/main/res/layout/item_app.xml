@@ -32,6 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_toLeftOf="@+id/btnDownload"
+                android:ellipsize="end"
                 android:text="App"
                 android:textAppearance="?android:textAppearanceMedium" />
 

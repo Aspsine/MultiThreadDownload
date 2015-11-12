@@ -144,18 +144,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         mStatus = DownloadStatus.STATUS_PROGRESS;
         // calculate percent
         final int percent = (int) (finished * 100 / length);
-        // calculate speed
-        final long current = System.currentTimeMillis();
-        final long timeDelta = current - mLastTime;
-        final long byteDelta = finished - mLastFinished;
-
-        long speed = 0;
-        if (timeDelta > 0 && byteDelta > 0) {
-            speed = ((byteDelta * 1000) / timeDelta) / 1024;
-        }
-        mResponse.onDownloadProgress(finished, length, percent, speed);
-        mLastTime = current;
-        mLastFinished = finished;
+        mResponse.onDownloadProgress(finished, length, percent);
     }
 
     @Override
@@ -214,6 +203,12 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         mDownloadTasks = new LinkedList<>();
         if (acceptRanges) {
             List<ThreadInfo> threadInfos = getMultiThreadInfos(length);
+            // init finished
+            int finished = 0;
+            for (ThreadInfo threadInfo : threadInfos) {
+                finished += threadInfo.getFinished();
+            }
+            mDownloadInfo.setFinished(finished);
             for (ThreadInfo info : threadInfos) {
                 mDownloadTasks.add(new MultiDownloadTask(mDownloadInfo, info, mDBManager, this));
             }
@@ -226,7 +221,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     //TODO
     private List<ThreadInfo> getMultiThreadInfos(long length) {
         // init threadInfo from db
-        final List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(mRequest.getUri().toString());
+        final List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(mTag);
         if (threadInfos.isEmpty()) {
             final int threadNum = mConfig.getThreadNum();
             for (int i = 0; i < threadNum; i++) {
@@ -239,7 +234,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
                 } else {
                     end = start + average - 1;
                 }
-                ThreadInfo threadInfo = new ThreadInfo(i, mRequest.getUri(), start, end, 0);
+                ThreadInfo threadInfo = new ThreadInfo(i, mTag, mRequest.getUri(), start, end, 0);
                 threadInfos.add(threadInfo);
             }
         }
@@ -248,7 +243,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     //TODO
     private ThreadInfo getSingleThreadInfo() {
-        ThreadInfo threadInfo = new ThreadInfo(0, mRequest.getUri(), 0);
+        ThreadInfo threadInfo = new ThreadInfo(0, mTag, mRequest.getUri(), 0);
         return threadInfo;
     }
 
@@ -296,7 +291,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         return allCanceled;
     }
 
-    private void deleteFromDB(){
+    private void deleteFromDB() {
         mDBManager.delete(mTag);
     }
 }

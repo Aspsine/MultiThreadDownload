@@ -21,7 +21,6 @@ public class DownloadStatus {
     private long length;
     private long finished;
     private int percent;
-    private long speed;
     private boolean acceptRanges;
     private DownloadException exception;
 
@@ -65,14 +64,6 @@ public class DownloadStatus {
 
     public void setPercent(int percent) {
         this.percent = percent;
-    }
-
-    public long getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(long speed) {
-        this.speed = speed;
     }
 
     public boolean isAcceptRanges() {

@@ -17,7 +17,7 @@ public interface DownloadResponse {
 
     void onConnectCanceled();
 
-    void onDownloadProgress(long finished, long length, int percent, long speed);
+    void onDownloadProgress(long finished, long length, int percent);
 
     void onDownloadCompleted();
 

@@ -30,7 +30,7 @@ public class SingleDownloadTask extends DownloadTaskImpl {
     }
 
     @Override
-    protected void updateDBProgress(ThreadInfo info) {
+    protected void updateDB(ThreadInfo info) {
         // needn't Override this
     }
 

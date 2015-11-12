@@ -224,7 +224,7 @@ public abstract class DownloadTaskImpl implements DownloadTask {
             throw new DownloadException(DownloadStatus.STATUS_CANCELED, "Download paused!");
         } else if (isPaused()) {
             // pause
-            updateDBProgress(mThreadInfo);
+            updateDB(mThreadInfo);
             throw new DownloadException(DownloadStatus.STATUS_PAUSED, "Download canceled!");
         }
     }
@@ -234,7 +234,7 @@ public abstract class DownloadTaskImpl implements DownloadTask {
 
     protected abstract int getResponseCode();
 
-    protected abstract void updateDBProgress(ThreadInfo info);
+    protected abstract void updateDB(ThreadInfo info);
 
     protected abstract Map<String, String> getHttpHeaders(ThreadInfo info);
 

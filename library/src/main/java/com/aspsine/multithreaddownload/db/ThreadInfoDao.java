@@ -19,7 +19,7 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
     }
 
     public static void createTable(SQLiteDatabase db) {
-        db.execSQL("create table " + TABLE_NAME + "(_id integer primary key autoincrement, id integer, uri text, start long, end long, finished long)");
+        db.execSQL("create table " + TABLE_NAME + "(_id integer primary key autoincrement, id integer, tag text, uri text, start long, end long, finished long)");
     }
 
     public static void dropTable(SQLiteDatabase db) {
@@ -30,38 +30,39 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("insert into "
                         + TABLE_NAME
-                        + "(id, uri, start, end, finished) values(?, ?, ?, ?, ?)",
-                new Object[]{info.getId(), info.getUri(), info.getStart(), info.getEnd(), info.getFinished()});
+                        + "(id, tag, uri, start, end, finished) values(?, ?, ?, ?, ?, ?)",
+                new Object[]{info.getId(), info.getTag(), info.getUri(), info.getStart(), info.getEnd(), info.getFinished()});
     }
 
-    public void delete(String uri) {
+    public void delete(String tag) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("delete from "
                         + TABLE_NAME
-                        + " where uri = ?",
-                new Object[]{uri});
+                        + " where tag = ?",
+                new Object[]{tag});
     }
 
-    public void update(String uri, int threadId, long finished) {
+    public void update(String tag, int threadId, long finished) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("update "
                         + TABLE_NAME
                         + " set finished = ?"
-                        + " where uri = ? and id = ? ",
-                new Object[]{finished, uri, threadId});
+                        + " where tag = ? and id = ? ",
+                new Object[]{finished, tag, threadId});
     }
 
-    public List<ThreadInfo> getThreadInfos(String uri) {
+    public List<ThreadInfo> getThreadInfos(String tag) {
         List<ThreadInfo> list = new ArrayList<ThreadInfo>();
         SQLiteDatabase db = getReadableDatabase();
 
         Cursor cursor = db.rawQuery("select * from "
                         + TABLE_NAME
-                        + " where uri = ?",
-                new String[]{uri});
+                        + " where tag = ?",
+                new String[]{tag});
         while (cursor.moveToNext()) {
             ThreadInfo info = new ThreadInfo();
             info.setId(cursor.getInt(cursor.getColumnIndex("id")));
+            info.setTag(cursor.getString(cursor.getColumnIndex("tag")));
             info.setUri(cursor.getString(cursor.getColumnIndex("uri")));
             info.setEnd(cursor.getLong(cursor.getColumnIndex("end")));
             info.setStart(cursor.getLong(cursor.getColumnIndex("start")));
@@ -72,12 +73,12 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
         return list;
     }
 
-    public boolean exists(String uri, int threadId) {
+    public boolean exists(String tag, int threadId) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("select * from "
                         + TABLE_NAME
-                        + " where uri = ? and id = ?",
-                new String[]{uri, threadId + ""});
+                        + " where tag = ? and id = ?",
+                new String[]{tag, threadId + ""});
         boolean isExists = cursor.moveToNext();
         cursor.close();
         return isExists;

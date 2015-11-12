@@ -51,7 +51,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
                     mCallBack.onConnected(mDownloadStatus.getLength(), mDownloadStatus.isAcceptRanges());
                     break;
                 case DownloadStatus.STATUS_PROGRESS:
-                    mCallBack.onProgress(mDownloadStatus.getFinished(), mDownloadStatus.getLength(), mDownloadStatus.getPercent(), mDownloadStatus.getSpeed());
+                    mCallBack.onProgress(mDownloadStatus.getFinished(), mDownloadStatus.getLength(), mDownloadStatus.getPercent());
                     break;
                 case DownloadStatus.STATUS_COMPLETED:
                     mCallBack.onCompleted();

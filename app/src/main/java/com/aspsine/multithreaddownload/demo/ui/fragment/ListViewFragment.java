@@ -1,6 +1,9 @@
 package com.aspsine.multithreaddownload.demo.ui.fragment;
 
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
@@ -9,15 +12,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import com.aspsine.multithreaddownload.CallBack;
-import com.aspsine.multithreaddownload.DownloadException;
 import com.aspsine.multithreaddownload.DownloadInfo;
 import com.aspsine.multithreaddownload.DownloadManager;
-import com.aspsine.multithreaddownload.DownloadRequest;
 import com.aspsine.multithreaddownload.demo.DataSource;
 import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
+import com.aspsine.multithreaddownload.demo.service.DownloadService;
 import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
 import com.aspsine.multithreaddownload.demo.util.Utils;
 
@@ -32,11 +33,17 @@ import butterknife.ButterKnife;
  * A simple {@link Fragment} subclass.
  */
 public class ListViewFragment extends Fragment implements OnItemClickListener<AppInfo> {
+
+    private static final DecimalFormat DF = new DecimalFormat("0.00");
+
     @Bind(R.id.listView)
     ListView listView;
 
     private List<AppInfo> mAppInfos;
     private ListViewAdapter mAdapter;
+
+    private File mDownloadDir;
+
 
     public ListViewFragment() {
         // Required empty public constructor
@@ -45,6 +52,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mDownloadDir = new File(Environment.getExternalStorageDirectory(), "Download");
         mAdapter = new ListViewAdapter();
         mAdapter.setOnItemClickListener(this);
         mAppInfos = DataSource.getInstance().getData();
@@ -74,140 +82,63 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
         mAdapter.setData(mAppInfos);
     }
 
-    private static final DecimalFormat DF = new DecimalFormat("0.00");
-
-    /**
-     * Dir: /Download
-     */
-    private final File dir = new File(Environment.getExternalStorageDirectory(), "Download");
 
     @Override
     public void onItemClick(View v, final int position, final AppInfo appInfo) {
 
         if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING || appInfo.getStatus() == AppInfo.STATUS_CONNECTING) {
             if (isCurrentListViewItemVisible(position)) {
-                DownloadManager.getInstance().pause(appInfo.getUrl());
+                pause(position, appInfo.getUrl());
             }
         } else if (appInfo.getStatus() == AppInfo.STATUS_COMPLETE) {
             if (isCurrentListViewItemVisible(position)) {
-                Utils.installApp(getActivity(), new File(dir, appInfo.getName() + ".apk"));
+                install(appInfo);
             }
         } else if (appInfo.getStatus() == AppInfo.STATUS_INSTALLED) {
             if (isCurrentListViewItemVisible(position)) {
-                Utils.unInstallApp(getActivity(), appInfo.getPackageName());
+                unInstall(appInfo);
             }
         } else {
-            download(position, appInfo);
+            if (isCurrentListViewItemVisible(position)) {
+                download(position, appInfo.getUrl(), appInfo);
+            }
         }
     }
 
-    private void download(final int position, final AppInfo appInfo) {
-        final DownloadRequest request = new DownloadRequest.Builder()
-                .setTitle(appInfo.getName() + ".apk")
-                .setUri(appInfo.getUrl())
-                .setFolder(dir)
-                .build();
-        final CallBack callBack = new CallBack() {
-            @Override
-            public void onStarted() {
+
+    public class DownloadReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            int status = intent.getIntExtra("EXTRA_STATUS", 0);
+            switch (status) {
 
             }
-
-            @Override
-            public void onConnecting() {
-                appInfo.setStatus(AppInfo.STATUS_CONNECTING);
-                if (isCurrentListViewItemVisible(position)) {
-                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onConnected(long total, boolean isRangeSupport) {
-                appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
-                if (isCurrentListViewItemVisible(position)) {
-                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onProgress(long finished, long total, int progress, long speed) {
-                String downloadPerSize = getDownloadPerSize(finished, total);
-                appInfo.setProgress(progress);
-                appInfo.setDownloadPerSize(downloadPerSize);
-                appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
-                if (isCurrentListViewItemVisible(position)) {
-                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    holder.tvDownloadPerSize.setText(downloadPerSize);
-                    holder.progressBar.setProgress(progress);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
+        }
 
 
-            @Override
-            public void onCompleted() {
-                appInfo.setStatus(AppInfo.STATUS_COMPLETE);
-                File apk = new File(dir, appInfo.getName() + ".apk");
-                if (apk.isFile() && apk.exists()) {
-                    String packageName = Utils.getApkFilePackage(getActivity(), apk);
-                    appInfo.setPackageName(packageName);
-                    if (Utils.isAppInstalled(getActivity(), packageName)) {
-                        appInfo.setStatus(AppInfo.STATUS_INSTALLED);
-                    }
-                }
-
-                if (isCurrentListViewItemVisible(position)) {
-                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onDownloadPaused() {
-                appInfo.setStatus(AppInfo.STATUS_PAUSE);
-                if (isCurrentListViewItemVisible(position)) {
-                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onDownloadCanceled() {
-                appInfo.setStatus(AppInfo.STATUS_NOT_DOWNLOAD);
-                appInfo.setDownloadPerSize("");
-                if (isCurrentListViewItemVisible(position)) {
-                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.tvDownloadPerSize.setText("");
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onFailed(DownloadException e) {
-                appInfo.setStatus(AppInfo.STATUS_DOWNLOAD_ERROR);
-                appInfo.setDownloadPerSize("");
-                if (isCurrentListViewItemVisible(position)) {
-                    ListViewAdapter.ViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.tvDownloadPerSize.setText("");
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-                e.printStackTrace();
-            }
-        };
-        DownloadManager.getInstance().download(request, appInfo.getUrl(), callBack);
     }
 
-    private String getDownloadPerSize(long finished, long total) {
-        return DF.format((float) finished / (1024 * 1024)) + "M/" + DF.format((float) total / (1024 * 1024)) + "M";
+    public void download(int position, String tag, AppInfo info) {
+        Intent intent = new Intent(getActivity(), DownloadService.class);
+        getActivity().startService(intent);
+    }
+
+    public void pause(int position, String tag) {
+
+    }
+
+    public void pauseAll() {
+
+    }
+
+    public void install(AppInfo appInfo) {
+        Utils.installApp(getActivity(), new File(mDownloadDir, appInfo.getName() + ".apk"));
+    }
+
+    public void unInstall(AppInfo appInfo) {
+        Utils.unInstallApp(getActivity(), appInfo.getPackageName());
     }
 
     private boolean isCurrentListViewItemVisible(int position) {
@@ -220,5 +151,9 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
         int childPosition = position - listView.getFirstVisiblePosition();
         View view = listView.getChildAt(childPosition);
         return (ListViewAdapter.ViewHolder) view.getTag();
+    }
+
+    private String getDownloadPerSize(long finished, long total) {
+        return DF.format((float) finished / (1024 * 1024)) + "M/" + DF.format((float) total / (1024 * 1024)) + "M";
     }
 }

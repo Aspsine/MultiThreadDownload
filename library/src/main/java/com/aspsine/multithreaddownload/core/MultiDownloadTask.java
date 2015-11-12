@@ -4,8 +4,8 @@ package com.aspsine.multithreaddownload.core;
  * Created by Aspsine on 2015/7/20.
  */
 
-import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.DownloadInfo;
+import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.db.ThreadInfo;
 
 import java.io.File;
@@ -31,7 +31,7 @@ public class MultiDownloadTask extends DownloadTaskImpl {
 
     @Override
     protected void insertIntoDB(ThreadInfo info) {
-        if (!mDBManager.exists(info.getUri(), info.getId())) {
+        if (!mDBManager.exists(info.getTag(), info.getId())) {
             mDBManager.insert(info);
         }
     }
@@ -42,8 +42,8 @@ public class MultiDownloadTask extends DownloadTaskImpl {
     }
 
     @Override
-    protected void updateDBProgress(ThreadInfo info) {
-        mDBManager.update(info.getUri(), info.getId(), info.getFinished());
+    protected void updateDB(ThreadInfo info) {
+        mDBManager.update(info.getTag(), info.getId(), info.getFinished());
     }
 
     @Override

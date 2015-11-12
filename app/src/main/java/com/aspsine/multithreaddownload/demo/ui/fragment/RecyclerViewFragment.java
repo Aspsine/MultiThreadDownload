@@ -11,8 +11,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.aspsine.multithreaddownload.CallBack;
-import com.aspsine.multithreaddownload.DownloadManager;
 import com.aspsine.multithreaddownload.DownloadException;
+import com.aspsine.multithreaddownload.DownloadInfo;
+import com.aspsine.multithreaddownload.DownloadManager;
 import com.aspsine.multithreaddownload.DownloadRequest;
 import com.aspsine.multithreaddownload.demo.DataSource;
 import com.aspsine.multithreaddownload.demo.R;
@@ -20,7 +21,6 @@ import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.listener.OnItemClickListener;
 import com.aspsine.multithreaddownload.demo.ui.adapter.RecyclerViewAdapter;
 import com.aspsine.multithreaddownload.demo.util.Utils;
-import com.aspsine.multithreaddownload.DownloadInfo;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -96,9 +96,10 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
     }
 
     private void download(final int position, final AppInfo appInfo) {
-        DownloadRequest request = new DownloadRequest.Builder()
-                .setTitle(appInfo.getName())
+        final DownloadRequest request = new DownloadRequest.Builder()
+                .setTitle(appInfo.getName() + ".apk")
                 .setUri(appInfo.getUrl())
+                .setFolder(dir)
                 .build();
 
         DownloadManager.getInstance().download(request, appInfo.getUrl(), new CallBack() {
@@ -129,7 +130,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
             }
 
             @Override
-            public void onProgress(long finished, long total, int progress, long speed) {
+            public void onProgress(long finished, long total, int progress) {
                 String downloadPerSize = getDownloadPerSize(finished, total);
                 appInfo.setProgress(progress);
                 appInfo.setDownloadPerSize(downloadPerSize);

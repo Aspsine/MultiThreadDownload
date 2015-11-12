@@ -5,26 +5,28 @@ package com.aspsine.multithreaddownload.db;
  */
 public class ThreadInfo {
     private int id;
+    private String tag;
     private String uri;
     private long start;
     private long end;
     private long finished;
-    private int progress;
 
     public ThreadInfo() {
     }
 
-    public ThreadInfo(int id, String uri, long start, long end, long finished) {
+    public ThreadInfo(int id, String tag, String uri, long finished) {
         this.id = id;
+        this.tag = tag;
         this.uri = uri;
-        this.start = start;
-        this.end = end;
         this.finished = finished;
     }
 
-    public ThreadInfo(int id, String uri, int finished) {
+    public ThreadInfo(int id, String tag, String uri, long start, long end, long finished) {
         this.id = id;
+        this.tag = tag;
         this.uri = uri;
+        this.start = start;
+        this.end = end;
         this.finished = finished;
     }
 
@@ -34,6 +36,14 @@ public class ThreadInfo {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     public String getUri() {
@@ -66,13 +76,5 @@ public class ThreadInfo {
 
     public void setFinished(long finished) {
         this.finished = finished;
-    }
-
-    public int getProgress() {
-        return progress;
-    }
-
-    public void setProgress(int progress) {
-        this.progress = progress;
     }
 }

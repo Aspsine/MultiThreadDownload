@@ -54,11 +54,10 @@ public class DownloadResponseImpl implements DownloadResponse {
     }
 
     @Override
-    public void onDownloadProgress(long finished, long length, int percent, long speed) {
+    public void onDownloadProgress(long finished, long length, int percent) {
         mDownloadStatus.setFinished(finished);
         mDownloadStatus.setLength(length);
         mDownloadStatus.setPercent(percent);
-        mDownloadStatus.setSpeed(speed);
         mDownloadStatus.setStatus(DownloadStatus.STATUS_PROGRESS);
         mDelivery.post(mDownloadStatus);
     }
