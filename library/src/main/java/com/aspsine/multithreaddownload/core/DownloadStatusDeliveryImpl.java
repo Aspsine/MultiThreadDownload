@@ -41,7 +41,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
         @Override
         public void run() {
             switch (mDownloadStatus.getStatus()) {
-                case DownloadStatus.STATUS_START:
+                case DownloadStatus.STATUS_STARTED:
                     mCallBack.onStarted();
                     break;
                 case DownloadStatus.STATUS_CONNECTING:

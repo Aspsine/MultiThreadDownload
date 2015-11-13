@@ -65,7 +65,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     @Override
     public boolean isRunning() {
-        return mStatus == DownloadStatus.STATUS_START
+        return mStatus == DownloadStatus.STATUS_STARTED
                 || mStatus == DownloadStatus.STATUS_CONNECTING
                 || mStatus == DownloadStatus.STATUS_CONNECTED
                 || mStatus == DownloadStatus.STATUS_PROGRESS;
@@ -73,7 +73,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     @Override
     public void start() {
-        mStatus = DownloadStatus.STATUS_START;
+        mStatus = DownloadStatus.STATUS_STARTED;
         mResponse.onStarted();
         connect();
     }

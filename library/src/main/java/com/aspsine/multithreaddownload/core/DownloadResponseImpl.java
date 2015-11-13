@@ -22,7 +22,7 @@ public class DownloadResponseImpl implements DownloadResponse {
 
     @Override
     public void onStarted() {
-        mDownloadStatus.setStatus(DownloadStatus.STATUS_START);
+        mDownloadStatus.setStatus(DownloadStatus.STATUS_STARTED);
         mDelivery.post(mDownloadStatus);
     }
 

@@ -13,7 +13,9 @@ import com.aspsine.multithreaddownload.CallBack;
 import com.aspsine.multithreaddownload.DownloadException;
 import com.aspsine.multithreaddownload.DownloadManager;
 import com.aspsine.multithreaddownload.DownloadRequest;
+import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
+import com.aspsine.multithreaddownload.demo.util.Utils;
 
 import java.io.File;
 
@@ -22,10 +24,7 @@ import java.io.File;
  */
 public class DownloadService extends Service {
 
-    /**
-     * Dir: /Download
-     */
-    private File mDownloadDir;
+    public static final String ACTION_DOWNLOAD_BROAD_CAST = "com.aspsine.multithreaddownload.demo:action_download_broad_cast";
 
     public static final String ACTION_DOWNLOAD = "com.aspsine.multithreaddownload.demo:action_download";
 
@@ -37,9 +36,41 @@ public class DownloadService extends Service {
 
     public static final String ACTION_CANCEL_ALL = "com.aspsine.multithreaddownload.demo:action_cancel_all";
 
+    public static final String EXTRA_POSITION = "extra_position";
+
+    public static final String EXTRA_TAG = "extra_tag";
+
+    public static final String EXTRA_APP_INFO = "extra_app_info";
+
+    /**
+     * Dir: /Download
+     */
+    private File mDownloadDir;
+
     private DownloadManager mDownloadManager;
 
     private NotificationManagerCompat mNotificationManager;
+
+    public static void intentDownload(Context context, int position, String tag, AppInfo info) {
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.setAction(ACTION_DOWNLOAD);
+        intent.putExtra(EXTRA_POSITION, position);
+        intent.putExtra(EXTRA_TAG, tag);
+        intent.putExtra(EXTRA_APP_INFO, info);
+        context.startService(intent);
+    }
+
+    public static void intentPause(Context context, String tag) {
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.setAction(ACTION_PAUSE);
+        intent.putExtra(EXTRA_TAG, tag);
+        context.startService(intent);
+    }
+
+    public static void intentPauseAll(Context context) {
+        Intent intent = new Intent(context, DownloadService.class);
+        context.startService(intent);
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -50,9 +81,9 @@ public class DownloadService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String action = intent.getAction();
-            int position = intent.getIntExtra("EXTRA_POSITION", 0);
-            AppInfo appInfo = (AppInfo) intent.getSerializableExtra("EXTRA_APPINFO");
-            String tag = intent.getStringExtra("EXTRA_TAG");
+            int position = intent.getIntExtra(EXTRA_POSITION, 0);
+            AppInfo appInfo = (AppInfo) intent.getSerializableExtra(EXTRA_APP_INFO);
+            String tag = intent.getStringExtra(EXTRA_TAG);
             switch (action) {
                 case ACTION_DOWNLOAD:
                     download(position, appInfo, tag);
@@ -111,6 +142,8 @@ public class DownloadService extends Service {
 
         private NotificationManagerCompat mNotificationManager;
 
+        private long mLastTime;
+
         public DownloadCallBack(int position, AppInfo appInfo, NotificationManagerCompat notificationManager, Context context) {
             mPosition = position;
             mAppInfo = appInfo;
@@ -121,69 +154,109 @@ public class DownloadService extends Service {
 
         @Override
         public void onStarted() {
-            mNotificationManager.notify(mPosition, mBuilder.build());
-
-            Intent intent = new Intent();
-            mLocalBroadcastManager.sendBroadcast(intent);
-
+//            mBuilder.setSmallIcon(R.mipmap.ic_launcher)
+//                    .setContentTitle(mAppInfo.getName())
+//                    .setContentText("Init Download")
+//                    .setProgress(100, 0, true)
+//                    .setTicker("Start download " + mAppInfo.getName());
+            updateNotification();
         }
 
         @Override
         public void onConnecting() {
-            mNotificationManager.notify(mPosition, mBuilder.build());
+            mBuilder.setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle(mAppInfo.getName())
+                    .setContentText("Init Download")
+                    .setProgress(100, 0, true)
+                    .setTicker("Start download " + mAppInfo.getName());
+//            mBuilder.setContentText("Connecting")
+//                    .setProgress(100, 0, true);
+            updateNotification();
 
-            Intent intent = new Intent();
-            mLocalBroadcastManager.sendBroadcast(intent);
-
+            mAppInfo.setStatus(AppInfo.STATUS_CONNECTING);
+            sendBroadCast(mAppInfo);
         }
 
         @Override
         public void onConnected(long total, boolean isRangeSupport) {
-            mNotificationManager.notify(mPosition, mBuilder.build());
-
-            Intent intent = new Intent();
-            mLocalBroadcastManager.sendBroadcast(intent);
-
+            mBuilder.setContentText("Connected")
+                    .setProgress(100, 0, true);
+            updateNotification();
         }
 
         @Override
         public void onProgress(long finished, long total, int progress) {
-            mNotificationManager.notify(mPosition, mBuilder.build());
+            if (mLastTime == 0) {
+                mLastTime = System.currentTimeMillis();
+            }
 
-            Intent intent = new Intent();
-            mLocalBroadcastManager.sendBroadcast(intent);
+            mAppInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
+            mAppInfo.setProgress(progress);
+            mAppInfo.setDownloadPerSize(Utils.getDownloadPerSize(finished, total));
+
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - mLastTime > 500) {
+                mBuilder.setContentText("Downloading");
+                mBuilder.setProgress(100, progress, false);
+                updateNotification();
+
+                sendBroadCast(mAppInfo);
+
+                mLastTime = currentTime;
+            }
         }
-
 
         @Override
         public void onCompleted() {
-            mNotificationManager.notify(mPosition, mBuilder.build());
+            mBuilder.setContentText("Download Complete");
+            mBuilder.setProgress(0, 0, false);
+            mBuilder.setTicker(mAppInfo.getName() + " download Complete");
+            updateNotification();
 
-            Intent intent = new Intent();
-            mLocalBroadcastManager.sendBroadcast(intent);
+            mAppInfo.setStatus(AppInfo.STATUS_COMPLETE);
+            mAppInfo.setProgress(100);
+            sendBroadCast(mAppInfo);
         }
 
         @Override
         public void onDownloadPaused() {
-            mNotificationManager.notify(mPosition, mBuilder.build());
+            mBuilder.setContentText("Download Paused");
+            mBuilder.setTicker(mAppInfo.getName() + " download Paused");
+            updateNotification();
 
-            Intent intent = new Intent();
-            mLocalBroadcastManager.sendBroadcast(intent);
+            mAppInfo.setStatus(AppInfo.STATUS_PAUSED);
+            sendBroadCast(mAppInfo);
         }
 
         @Override
         public void onDownloadCanceled() {
-            mNotificationManager.notify(mPosition, mBuilder.build());
-
-            Intent intent = new Intent();
-            mLocalBroadcastManager.sendBroadcast(intent);
+            mBuilder.setContentText("Download Canceled");
+            mBuilder.setTicker(mAppInfo.getName() + " download Canceled");
+            updateNotification();
+            mNotificationManager.cancel(mPosition);
         }
 
         @Override
         public void onFailed(DownloadException e) {
-            mNotificationManager.notify(mPosition, mBuilder.build());
+            e.printStackTrace();
+            mBuilder.setContentText("Download Failed");
+            mBuilder.setTicker(mAppInfo.getName() + " download failed");
+            mBuilder.setProgress(100, mAppInfo.getProgress(), false);
+            updateNotification();
 
+            mAppInfo.setStatus(AppInfo.STATUS_DOWNLOAD_ERROR);
+            sendBroadCast(mAppInfo);
+        }
+
+        private void updateNotification() {
+            mNotificationManager.notify(mPosition + 1000, mBuilder.build());
+        }
+
+        private void sendBroadCast(AppInfo appInfo) {
             Intent intent = new Intent();
+            intent.setAction(DownloadService.ACTION_DOWNLOAD_BROAD_CAST);
+            intent.putExtra(EXTRA_POSITION, mPosition);
+            intent.putExtra(EXTRA_APP_INFO, appInfo);
             mLocalBroadcastManager.sendBroadcast(intent);
         }
     }

@@ -12,14 +12,12 @@ public interface CallBack {
     void onStarted();
 
     /**
-     * <p> {@link #onConnecting()}
      * <p> this will be the the first method called by
      * {@link ConnectTaskImpl}.
      */
     void onConnecting();
 
     /**
-     * <p> {@link #onConnected(long, boolean)}
      * <p> if {@link ConnectTaskImpl} is successfully
      * connected with the http/https server this method will be invoke. If not method
      * {@link #onFailed(DownloadException)} will be invoke.
@@ -33,7 +31,6 @@ public interface CallBack {
     void onConnected(long total, boolean isRangeSupport);
 
     /**
-     * <p/>
      * <p> progress callback.
      *
      * @param finished the downloaded length of the file
@@ -43,30 +40,26 @@ public interface CallBack {
     void onProgress(long finished, long total, int progress);
 
     /**
-     * <p>{@link #onCompleted()}
      * <p> download complete
      */
     void onCompleted();
 
     /**
-     * <p>{@link #onDownloadPaused()}
      * <p> if you invoke {@link DownloadManager#pause(String)} or {@link DownloadManager#pauseAll()}
      * this method will be invoke if the downloading task is successfully paused.
      */
     void onDownloadPaused();
 
     /**
-     * <p>{@link #onDownloadCanceled()}
      * <p> if you invoke {@link DownloadManager#cancel(String)} or {@link DownloadManager#cancelAll()}
      * this method will be invoke if the downloading task is successfully canceled.
      */
     void onDownloadCanceled();
 
     /**
-     * <p>{@link #onFailed(DownloadException)}
      * <p> download fail or exception callback
      *
-     * @param e
+     * @param e download exception
      */
     void onFailed(DownloadException e);
 }

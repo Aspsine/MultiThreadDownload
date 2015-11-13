@@ -53,7 +53,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
             if (downloadInfo != null) {
                 info.setProgress(downloadInfo.getProgress());
                 info.setDownloadPerSize(getDownloadPerSize(downloadInfo.getFinished(), downloadInfo.getLength()));
-                info.setStatus(AppInfo.STATUS_PAUSE);
+                info.setStatus(AppInfo.STATUS_PAUSED);
             }
         }
     }
@@ -165,7 +165,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
 
             @Override
             public void onDownloadPaused() {
-                appInfo.setStatus(AppInfo.STATUS_PAUSE);
+                appInfo.setStatus(AppInfo.STATUS_PAUSED);
                 if (isCurrentListViewItemVisible(position)) {
                     RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
                     holder.tvStatus.setText(appInfo.getStatusText());

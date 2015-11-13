@@ -7,7 +7,7 @@ import com.aspsine.multithreaddownload.DownloadException;
  * Created by Aspsine on 2015/7/15.
  */
 public class DownloadStatus {
-    public static final int STATUS_START = 101;
+    public static final int STATUS_STARTED = 101;
     public static final int STATUS_CONNECTING = 102;
     public static final int STATUS_CONNECTED = 103;
     public static final int STATUS_PROGRESS = 104;

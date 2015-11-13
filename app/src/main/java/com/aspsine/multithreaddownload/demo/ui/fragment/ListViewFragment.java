@@ -4,9 +4,11 @@ package com.aspsine.multithreaddownload.demo.ui.fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +25,6 @@ import com.aspsine.multithreaddownload.demo.ui.adapter.ListViewAdapter;
 import com.aspsine.multithreaddownload.demo.util.Utils;
 
 import java.io.File;
-import java.text.DecimalFormat;
 import java.util.List;
 
 import butterknife.Bind;
@@ -34,7 +35,6 @@ import butterknife.ButterKnife;
  */
 public class ListViewFragment extends Fragment implements OnItemClickListener<AppInfo> {
 
-    private static final DecimalFormat DF = new DecimalFormat("0.00");
 
     @Bind(R.id.listView)
     ListView listView;
@@ -44,6 +44,7 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
 
     private File mDownloadDir;
 
+    private DownloadReceiver mReceiver;
 
     public ListViewFragment() {
         // Required empty public constructor
@@ -60,8 +61,8 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
             DownloadInfo downloadInfo = DownloadManager.getInstance().getDownloadProgress(info.getUrl());
             if (downloadInfo != null) {
                 info.setProgress(downloadInfo.getProgress());
-                info.setDownloadPerSize(getDownloadPerSize(downloadInfo.getFinished(), downloadInfo.getLength()));
-                info.setStatus(AppInfo.STATUS_PAUSE);
+                info.setDownloadPerSize(Utils.getDownloadPerSize(downloadInfo.getFinished(), downloadInfo.getLength()));
+                info.setStatus(AppInfo.STATUS_PAUSED);
             }
         }
     }
@@ -82,13 +83,24 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
         mAdapter.setData(mAppInfos);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        register();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        unRegister();
+    }
 
     @Override
     public void onItemClick(View v, final int position, final AppInfo appInfo) {
 
         if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING || appInfo.getStatus() == AppInfo.STATUS_CONNECTING) {
             if (isCurrentListViewItemVisible(position)) {
-                pause(position, appInfo.getUrl());
+                pause(appInfo.getUrl());
             }
         } else if (appInfo.getStatus() == AppInfo.STATUS_COMPLETE) {
             if (isCurrentListViewItemVisible(position)) {
@@ -105,39 +117,118 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
         }
     }
 
+    private void register() {
+        mReceiver = new DownloadReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(DownloadService.ACTION_DOWNLOAD_BROAD_CAST);
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mReceiver, intentFilter);
+    }
 
-    public class DownloadReceiver extends BroadcastReceiver {
+    private void unRegister() {
+        if (mReceiver != null) {
+            LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mReceiver);
+        }
+    }
+
+    private class DownloadReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-
-            int status = intent.getIntExtra("EXTRA_STATUS", 0);
+            final String action = intent.getAction();
+            if (action == null || !action.equals(DownloadService.ACTION_DOWNLOAD_BROAD_CAST)) {
+                return;
+            }
+            final int position = intent.getIntExtra(DownloadService.EXTRA_POSITION, -1);
+            final AppInfo tmpInfo = (AppInfo) intent.getSerializableExtra(DownloadService.EXTRA_APP_INFO);
+            if (tmpInfo == null || position == -1) {
+                return;
+            }
+            final AppInfo appInfo = mAppInfos.get(position);
+            final int status = tmpInfo.getStatus();
             switch (status) {
+                case AppInfo.STATUS_CONNECTING:
+                    appInfo.setStatus(AppInfo.STATUS_CONNECTING);
+                    if (isCurrentListViewItemVisible(position)) {
+                        ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                        holder.tvStatus.setText(appInfo.getStatusText());
+                        holder.btnDownload.setText(appInfo.getButtonText());
+                    }
+                    break;
 
+                case AppInfo.STATUS_DOWNLOADING:
+                    appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
+                    appInfo.setProgress(tmpInfo.getProgress());
+                    appInfo.setDownloadPerSize(tmpInfo.getDownloadPerSize());
+                    if (isCurrentListViewItemVisible(position)) {
+                        ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                        holder.tvDownloadPerSize.setText(appInfo.getDownloadPerSize());
+                        holder.progressBar.setProgress(appInfo.getProgress());
+                        holder.tvStatus.setText(appInfo.getStatusText());
+                        holder.btnDownload.setText(appInfo.getButtonText());
+                    }
+                    break;
+                case AppInfo.STATUS_COMPLETE:
+                    appInfo.setStatus(AppInfo.STATUS_COMPLETE);
+                    appInfo.setProgress(tmpInfo.getProgress());
+                    appInfo.setDownloadPerSize(tmpInfo.getDownloadPerSize());
+                    File apk = new File(mDownloadDir, appInfo.getName() + ".apk");
+                    if (apk.isFile() && apk.exists()) {
+                        String packageName = Utils.getApkFilePackage(getActivity(), apk);
+                        appInfo.setPackageName(packageName);
+                        if (Utils.isAppInstalled(getActivity(), packageName)) {
+                            appInfo.setStatus(AppInfo.STATUS_INSTALLED);
+                        }
+                    }
+
+                    if (isCurrentListViewItemVisible(position)) {
+                        ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                        holder.tvStatus.setText(appInfo.getStatusText());
+                        holder.btnDownload.setText(appInfo.getButtonText());
+                        holder.tvDownloadPerSize.setText(appInfo.getDownloadPerSize());
+                        holder.progressBar.setProgress(appInfo.getProgress());
+                    }
+                    break;
+
+                case AppInfo.STATUS_PAUSED:
+                    appInfo.setStatus(AppInfo.STATUS_PAUSED);
+                    if (isCurrentListViewItemVisible(position)) {
+                        ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                        holder.tvStatus.setText(appInfo.getStatusText());
+                        holder.btnDownload.setText(appInfo.getButtonText());
+                    }
+                    break;
+
+                case AppInfo.STATUS_DOWNLOAD_ERROR:
+                    appInfo.setStatus(AppInfo.STATUS_DOWNLOAD_ERROR);
+                    appInfo.setDownloadPerSize("");
+                    if (isCurrentListViewItemVisible(position)) {
+                        ListViewAdapter.ViewHolder holder = getViewHolder(position);
+                        holder.tvStatus.setText(appInfo.getStatusText());
+                        holder.tvDownloadPerSize.setText("");
+                        holder.btnDownload.setText(appInfo.getButtonText());
+                    }
+                    break;
             }
         }
-
-
     }
 
-    public void download(int position, String tag, AppInfo info) {
-        Intent intent = new Intent(getActivity(), DownloadService.class);
-        getActivity().startService(intent);
+    private void download(int position, String tag, AppInfo info) {
+        DownloadService.intentDownload(getActivity(), position, tag, info);
     }
 
-    public void pause(int position, String tag) {
-
+    private void pause(String tag) {
+        DownloadService.intentPause(getActivity(), tag);
     }
 
-    public void pauseAll() {
-
+    private void pauseAll() {
+        DownloadService.intentPauseAll(getActivity());
     }
 
-    public void install(AppInfo appInfo) {
+    private void install(AppInfo appInfo) {
         Utils.installApp(getActivity(), new File(mDownloadDir, appInfo.getName() + ".apk"));
     }
 
-    public void unInstall(AppInfo appInfo) {
+    private void unInstall(AppInfo appInfo) {
         Utils.unInstallApp(getActivity(), appInfo.getPackageName());
     }
 
@@ -153,7 +244,4 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
         return (ListViewAdapter.ViewHolder) view.getTag();
     }
 
-    private String getDownloadPerSize(long finished, long total) {
-        return DF.format((float) finished / (1024 * 1024)) + "M/" + DF.format((float) total / (1024 * 1024)) + "M";
-    }
 }
