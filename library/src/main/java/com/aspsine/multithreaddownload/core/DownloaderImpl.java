@@ -261,7 +261,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     private boolean isAllFailed() {
         boolean allFailed = true;
         for (DownloadTask task : mDownloadTasks) {
-            if (!task.isFailed()) {
+            if (task.isDownloading()) {
                 allFailed = false;
                 break;
             }
@@ -272,7 +272,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     private boolean isAllPaused() {
         boolean allPaused = true;
         for (DownloadTask task : mDownloadTasks) {
-            if (!task.isPaused()) {
+            if (task.isDownloading()) {
                 allPaused = false;
                 break;
             }
@@ -283,7 +283,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     private boolean isAllCanceled() {
         boolean allCanceled = true;
         for (DownloadTask task : mDownloadTasks) {
-            if (task.isCanceled()) {
+            if (task.isDownloading()) {
                 allCanceled = false;
                 break;
             }

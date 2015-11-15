@@ -16,6 +16,7 @@ import com.aspsine.multithreaddownload.DownloadRequest;
 import com.aspsine.multithreaddownload.demo.R;
 import com.aspsine.multithreaddownload.demo.entity.AppInfo;
 import com.aspsine.multithreaddownload.demo.util.Utils;
+import com.aspsine.multithreaddownload.util.L;
 
 import java.io.File;
 
@@ -23,6 +24,8 @@ import java.io.File;
  * Created by aspsine on 15/7/28.
  */
 public class DownloadService extends Service {
+
+    private static final String TAG = DownloadService.class.getSimpleName();
 
     public static final String ACTION_DOWNLOAD_BROAD_CAST = "com.aspsine.multithreaddownload.demo:action_download_broad_cast";
 
@@ -154,23 +157,20 @@ public class DownloadService extends Service {
 
         @Override
         public void onStarted() {
-//            mBuilder.setSmallIcon(R.mipmap.ic_launcher)
-//                    .setContentTitle(mAppInfo.getName())
-//                    .setContentText("Init Download")
-//                    .setProgress(100, 0, true)
-//                    .setTicker("Start download " + mAppInfo.getName());
-            updateNotification();
-        }
-
-        @Override
-        public void onConnecting() {
+            L.i(TAG, "onStart()");
             mBuilder.setSmallIcon(R.mipmap.ic_launcher)
                     .setContentTitle(mAppInfo.getName())
                     .setContentText("Init Download")
                     .setProgress(100, 0, true)
                     .setTicker("Start download " + mAppInfo.getName());
-//            mBuilder.setContentText("Connecting")
-//                    .setProgress(100, 0, true);
+            updateNotification();
+        }
+
+        @Override
+        public void onConnecting() {
+            L.i(TAG, "onConnecting()");
+            mBuilder.setContentText("Connecting")
+                    .setProgress(100, 0, true);
             updateNotification();
 
             mAppInfo.setStatus(AppInfo.STATUS_CONNECTING);
@@ -179,6 +179,7 @@ public class DownloadService extends Service {
 
         @Override
         public void onConnected(long total, boolean isRangeSupport) {
+            L.i(TAG, "onConnected()");
             mBuilder.setContentText("Connected")
                     .setProgress(100, 0, true);
             updateNotification();
@@ -186,6 +187,7 @@ public class DownloadService extends Service {
 
         @Override
         public void onProgress(long finished, long total, int progress) {
+
             if (mLastTime == 0) {
                 mLastTime = System.currentTimeMillis();
             }
@@ -196,6 +198,7 @@ public class DownloadService extends Service {
 
             long currentTime = System.currentTimeMillis();
             if (currentTime - mLastTime > 500) {
+                L.i(TAG, "onProgress()");
                 mBuilder.setContentText("Downloading");
                 mBuilder.setProgress(100, progress, false);
                 updateNotification();
@@ -208,6 +211,7 @@ public class DownloadService extends Service {
 
         @Override
         public void onCompleted() {
+            L.i(TAG, "onCompleted()");
             mBuilder.setContentText("Download Complete");
             mBuilder.setProgress(0, 0, false);
             mBuilder.setTicker(mAppInfo.getName() + " download Complete");
@@ -220,6 +224,7 @@ public class DownloadService extends Service {
 
         @Override
         public void onDownloadPaused() {
+            L.i(TAG, "onDownloadPaused()");
             mBuilder.setContentText("Download Paused");
             mBuilder.setTicker(mAppInfo.getName() + " download Paused");
             updateNotification();
@@ -230,6 +235,7 @@ public class DownloadService extends Service {
 
         @Override
         public void onDownloadCanceled() {
+            L.i(TAG, "onDownloadCanceled()");
             mBuilder.setContentText("Download Canceled");
             mBuilder.setTicker(mAppInfo.getName() + " download Canceled");
             updateNotification();
@@ -238,6 +244,7 @@ public class DownloadService extends Service {
 
         @Override
         public void onFailed(DownloadException e) {
+            L.i(TAG, "onFailed()");
             e.printStackTrace();
             mBuilder.setContentText("Download Failed");
             mBuilder.setTicker(mAppInfo.getName() + " download failed");

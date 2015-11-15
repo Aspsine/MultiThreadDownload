@@ -36,6 +36,8 @@ public abstract class DownloadTaskImpl implements DownloadTask {
 
     private volatile int mStatus;
 
+    private volatile int mCommend = 0;
+
     public DownloadTaskImpl(DownloadInfo downloadInfo, ThreadInfo threadInfo, OnDownloadListener listener) {
         this.mDownloadInfo = downloadInfo;
         this.mThreadInfo = threadInfo;
@@ -49,12 +51,12 @@ public abstract class DownloadTaskImpl implements DownloadTask {
 
     @Override
     public void cancel() {
-        mStatus = DownloadStatus.STATUS_CANCELED;
+        mCommend = DownloadStatus.STATUS_CANCELED;
     }
 
     @Override
     public void pause() {
-        mStatus = DownloadStatus.STATUS_PAUSED;
+        mCommend = DownloadStatus.STATUS_PAUSED;
     }
 
     @Override
@@ -219,13 +221,13 @@ public abstract class DownloadTaskImpl implements DownloadTask {
 
 
     private void checkPausedOrCanceled() throws DownloadException {
-        if (isCanceled()) {
+        if (mCommend == DownloadStatus.STATUS_CANCELED) {
             // cancel
-            throw new DownloadException(DownloadStatus.STATUS_CANCELED, "Download paused!");
-        } else if (isPaused()) {
+            throw new DownloadException(DownloadStatus.STATUS_CANCELED, "Download canceled!");
+        } else if (mCommend == DownloadStatus.STATUS_PAUSED) {
             // pause
             updateDB(mThreadInfo);
-            throw new DownloadException(DownloadStatus.STATUS_PAUSED, "Download canceled!");
+            throw new DownloadException(DownloadStatus.STATUS_PAUSED, "Download paused!");
         }
     }
 
