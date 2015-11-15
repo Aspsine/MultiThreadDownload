@@ -80,125 +80,147 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
     /**
      * Dir: /Download
      */
-    private final File dir = new File(Environment.getExternalStorageDirectory(), "Download");
+    private final File mDownloadDir = new File(Environment.getExternalStorageDirectory(), "Download");
 
     @Override
     public void onItemClick(View v, int position, AppInfo appInfo) {
         if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING || appInfo.getStatus() == AppInfo.STATUS_CONNECTING) {
-            DownloadManager.getInstance().pause(appInfo.getUrl());
+            pause(appInfo.getUrl());
         } else if (appInfo.getStatus() == AppInfo.STATUS_COMPLETE) {
-            Utils.installApp(getActivity(), new File(dir, appInfo.getName() + ".apk"));
+            install(appInfo);
         } else if (appInfo.getStatus() == AppInfo.STATUS_INSTALLED) {
-            Utils.unInstallApp(getActivity(), appInfo.getPackageName());
+            unInstall(appInfo);
         } else {
-            download(position, appInfo);
+            download(position, appInfo.getUrl(), appInfo);
         }
     }
 
-    private void download(final int position, final AppInfo appInfo) {
+    private void download(final int position, String tag, final AppInfo appInfo) {
         final DownloadRequest request = new DownloadRequest.Builder()
                 .setTitle(appInfo.getName() + ".apk")
                 .setUri(appInfo.getUrl())
-                .setFolder(dir)
+                .setFolder(mDownloadDir)
                 .build();
 
-        DownloadManager.getInstance().download(request, appInfo.getUrl(), new CallBack() {
-
-            @Override
-            public void onStarted() {
-
-            }
-
-            @Override
-            public void onConnecting() {
-                appInfo.setStatus(AppInfo.STATUS_CONNECTING);
-                if (isCurrentListViewItemVisible(position)) {
-                    RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onConnected(long total, boolean isRangeSupport) {
-                appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
-                if (isCurrentListViewItemVisible(position)) {
-                    RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onProgress(long finished, long total, int progress) {
-                String downloadPerSize = getDownloadPerSize(finished, total);
-                appInfo.setProgress(progress);
-                appInfo.setDownloadPerSize(downloadPerSize);
-                appInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
-                if (isCurrentListViewItemVisible(position)) {
-                    RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
-                    holder.tvDownloadPerSize.setText(downloadPerSize);
-                    holder.progressBar.setProgress(progress);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onCompleted() {
-                appInfo.setStatus(AppInfo.STATUS_COMPLETE);
-                File apk = new File(dir, appInfo.getName() + ".apk");
-                if (apk.isFile() && apk.exists()) {
-                    String packageName = Utils.getApkFilePackage(getActivity(), apk);
-                    appInfo.setPackageName(packageName);
-                    if (Utils.isAppInstalled(getActivity(), packageName)) {
-                        appInfo.setStatus(AppInfo.STATUS_INSTALLED);
-                    }
-                }
-
-                if (isCurrentListViewItemVisible(position)) {
-                    RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onDownloadPaused() {
-                appInfo.setStatus(AppInfo.STATUS_PAUSED);
-                if (isCurrentListViewItemVisible(position)) {
-                    RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onDownloadCanceled() {
-                appInfo.setStatus(AppInfo.STATUS_NOT_DOWNLOAD);
-                appInfo.setDownloadPerSize("");
-                if (isCurrentListViewItemVisible(position)) {
-                    RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.tvDownloadPerSize.setText("");
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-            }
-
-            @Override
-            public void onFailed(DownloadException e) {
-                appInfo.setStatus(AppInfo.STATUS_DOWNLOAD_ERROR);
-                appInfo.setDownloadPerSize("");
-                if (isCurrentListViewItemVisible(position)) {
-                    RecyclerViewAdapter.AppViewHolder holder = getViewHolder(position);
-                    holder.tvStatus.setText(appInfo.getStatusText());
-                    holder.tvDownloadPerSize.setText("");
-                    holder.btnDownload.setText(appInfo.getButtonText());
-                }
-                e.printStackTrace();
-            }
-        });
+        DownloadManager.getInstance().download(request, tag, new DownloadCallback(position, appInfo));
     }
+
+    private void pause(String tag) {
+        DownloadManager.getInstance().pause(tag);
+    }
+
+    private void install(AppInfo appInfo) {
+        Utils.installApp(getActivity(), new File(mDownloadDir, appInfo.getName() + ".apk"));
+    }
+
+    private void unInstall(AppInfo appInfo) {
+        Utils.unInstallApp(getActivity(), appInfo.getPackageName());
+    }
+
+    class DownloadCallback implements CallBack {
+        private int mPosition;
+        private AppInfo mAppInfo;
+
+        public DownloadCallback(int position, AppInfo appInfo) {
+            mAppInfo = appInfo;
+            mPosition = position;
+        }
+
+        @Override
+        public void onStarted() {
+
+        }
+
+        @Override
+        public void onConnecting() {
+            mAppInfo.setStatus(mAppInfo.STATUS_CONNECTING);
+            if (isCurrentListViewItemVisible(mPosition)) {
+                RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
+                holder.tvStatus.setText(mAppInfo.getStatusText());
+                holder.btnDownload.setText(mAppInfo.getButtonText());
+            }
+        }
+
+        @Override
+        public void onConnected(long total, boolean isRangeSupport) {
+            mAppInfo.setStatus(mAppInfo.STATUS_DOWNLOADING);
+            if (isCurrentListViewItemVisible(mPosition)) {
+                RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
+                holder.tvStatus.setText(mAppInfo.getStatusText());
+                holder.btnDownload.setText(mAppInfo.getButtonText());
+            }
+        }
+
+        @Override
+        public void onProgress(long finished, long total, int progress) {
+            String downloadPerSize = getDownloadPerSize(finished, total);
+            mAppInfo.setProgress(progress);
+            mAppInfo.setDownloadPerSize(downloadPerSize);
+            mAppInfo.setStatus(mAppInfo.STATUS_DOWNLOADING);
+            if (isCurrentListViewItemVisible(mPosition)) {
+                RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
+                holder.tvDownloadPerSize.setText(downloadPerSize);
+                holder.progressBar.setProgress(progress);
+                holder.tvStatus.setText(mAppInfo.getStatusText());
+                holder.btnDownload.setText(mAppInfo.getButtonText());
+            }
+        }
+
+        @Override
+        public void onCompleted() {
+            mAppInfo.setStatus(mAppInfo.STATUS_COMPLETE);
+            File apk = new File(mDownloadDir, mAppInfo.getName() + ".apk");
+            if (apk.isFile() && apk.exists()) {
+                String packageName = Utils.getApkFilePackage(getActivity(), apk);
+                mAppInfo.setPackageName(packageName);
+                if (Utils.isAppInstalled(getActivity(), packageName)) {
+                    mAppInfo.setStatus(mAppInfo.STATUS_INSTALLED);
+                }
+            }
+
+            if (isCurrentListViewItemVisible(mPosition)) {
+                RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
+                holder.tvStatus.setText(mAppInfo.getStatusText());
+                holder.btnDownload.setText(mAppInfo.getButtonText());
+            }
+        }
+
+        @Override
+        public void onDownloadPaused() {
+            mAppInfo.setStatus(mAppInfo.STATUS_PAUSED);
+            if (isCurrentListViewItemVisible(mPosition)) {
+                RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
+                holder.tvStatus.setText(mAppInfo.getStatusText());
+                holder.btnDownload.setText(mAppInfo.getButtonText());
+            }
+        }
+
+        @Override
+        public void onDownloadCanceled() {
+            mAppInfo.setStatus(mAppInfo.STATUS_NOT_DOWNLOAD);
+            mAppInfo.setDownloadPerSize("");
+            if (isCurrentListViewItemVisible(mPosition)) {
+                RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
+                holder.tvStatus.setText(mAppInfo.getStatusText());
+                holder.tvDownloadPerSize.setText("");
+                holder.btnDownload.setText(mAppInfo.getButtonText());
+            }
+        }
+
+        @Override
+        public void onFailed(DownloadException e) {
+            mAppInfo.setStatus(mAppInfo.STATUS_DOWNLOAD_ERROR);
+            mAppInfo.setDownloadPerSize("");
+            if (isCurrentListViewItemVisible(mPosition)) {
+                RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
+                holder.tvStatus.setText(mAppInfo.getStatusText());
+                holder.tvDownloadPerSize.setText("");
+                holder.btnDownload.setText(mAppInfo.getButtonText());
+            }
+            e.printStackTrace();
+        }
+    }
+
 
     private RecyclerViewAdapter.AppViewHolder getViewHolder(int position) {
         return (RecyclerViewAdapter.AppViewHolder) recyclerView.findViewHolderForLayoutPosition(position);

@@ -97,23 +97,14 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
 
     @Override
     public void onItemClick(View v, final int position, final AppInfo appInfo) {
-
         if (appInfo.getStatus() == AppInfo.STATUS_DOWNLOADING || appInfo.getStatus() == AppInfo.STATUS_CONNECTING) {
-            if (isCurrentListViewItemVisible(position)) {
-                pause(appInfo.getUrl());
-            }
+            pause(appInfo.getUrl());
         } else if (appInfo.getStatus() == AppInfo.STATUS_COMPLETE) {
-            if (isCurrentListViewItemVisible(position)) {
-                install(appInfo);
-            }
+            install(appInfo);
         } else if (appInfo.getStatus() == AppInfo.STATUS_INSTALLED) {
-            if (isCurrentListViewItemVisible(position)) {
-                unInstall(appInfo);
-            }
+            unInstall(appInfo);
         } else {
-            if (isCurrentListViewItemVisible(position)) {
-                download(position, appInfo.getUrl(), appInfo);
-            }
+            download(position, appInfo.getUrl(), appInfo);
         }
     }
 
@@ -130,7 +121,27 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
         }
     }
 
-    private class DownloadReceiver extends BroadcastReceiver {
+    private void download(int position, String tag, AppInfo info) {
+        DownloadService.intentDownload(getActivity(), position, tag, info);
+    }
+
+    private void pause(String tag) {
+        DownloadService.intentPause(getActivity(), tag);
+    }
+
+    private void pauseAll() {
+        DownloadService.intentPauseAll(getActivity());
+    }
+
+    private void install(AppInfo appInfo) {
+        Utils.installApp(getActivity(), new File(mDownloadDir, appInfo.getName() + ".apk"));
+    }
+
+    private void unInstall(AppInfo appInfo) {
+        Utils.unInstallApp(getActivity(), appInfo.getPackageName());
+    }
+
+    class DownloadReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -210,26 +221,6 @@ public class ListViewFragment extends Fragment implements OnItemClickListener<Ap
                     break;
             }
         }
-    }
-
-    private void download(int position, String tag, AppInfo info) {
-        DownloadService.intentDownload(getActivity(), position, tag, info);
-    }
-
-    private void pause(String tag) {
-        DownloadService.intentPause(getActivity(), tag);
-    }
-
-    private void pauseAll() {
-        DownloadService.intentPauseAll(getActivity());
-    }
-
-    private void install(AppInfo appInfo) {
-        Utils.installApp(getActivity(), new File(mDownloadDir, appInfo.getName() + ".apk"));
-    }
-
-    private void unInstall(AppInfo appInfo) {
-        Utils.unInstallApp(getActivity(), appInfo.getPackageName());
     }
 
     private boolean isCurrentListViewItemVisible(int position) {

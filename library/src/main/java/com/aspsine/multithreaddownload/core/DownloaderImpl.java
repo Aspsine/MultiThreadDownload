@@ -61,6 +61,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     private void init() {
         mDownloadInfo = new DownloadInfo(mRequest.getTitle().toString(), mRequest.getUri(), mRequest.getFolder());
+        mDownloadTasks = new LinkedList<>();
     }
 
     @Override
@@ -127,12 +128,14 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     public void onConnectFailed(DownloadException de) {
         mStatus = DownloadStatus.STATUS_FAILED;
         mResponse.onConnectFailed(de);
+        onDestroy();
     }
 
     @Override
     public void onConnectCanceled() {
         mStatus = DownloadStatus.STATUS_CANCELED;
         mResponse.onConnectCanceled();
+        onDestroy();
     }
 
     @Override
@@ -200,7 +203,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     //TODO
     private void initDownloadTasks(long length, boolean acceptRanges) {
-        mDownloadTasks = new LinkedList<>();
+        mDownloadTasks.clear();
         if (acceptRanges) {
             List<ThreadInfo> threadInfos = getMultiThreadInfos(length);
             // init finished
