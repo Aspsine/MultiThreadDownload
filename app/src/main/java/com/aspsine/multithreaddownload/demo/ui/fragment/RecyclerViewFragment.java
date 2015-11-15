@@ -133,7 +133,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
 
         @Override
         public void onConnecting() {
-            mAppInfo.setStatus(mAppInfo.STATUS_CONNECTING);
+            mAppInfo.setStatus(AppInfo.STATUS_CONNECTING);
             if (isCurrentListViewItemVisible(mPosition)) {
                 RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
                 holder.tvStatus.setText(mAppInfo.getStatusText());
@@ -143,7 +143,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
 
         @Override
         public void onConnected(long total, boolean isRangeSupport) {
-            mAppInfo.setStatus(mAppInfo.STATUS_DOWNLOADING);
+            mAppInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
             if (isCurrentListViewItemVisible(mPosition)) {
                 RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
                 holder.tvStatus.setText(mAppInfo.getStatusText());
@@ -156,7 +156,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
             String downloadPerSize = getDownloadPerSize(finished, total);
             mAppInfo.setProgress(progress);
             mAppInfo.setDownloadPerSize(downloadPerSize);
-            mAppInfo.setStatus(mAppInfo.STATUS_DOWNLOADING);
+            mAppInfo.setStatus(AppInfo.STATUS_DOWNLOADING);
             if (isCurrentListViewItemVisible(mPosition)) {
                 RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
                 holder.tvDownloadPerSize.setText(downloadPerSize);
@@ -168,13 +168,13 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
 
         @Override
         public void onCompleted() {
-            mAppInfo.setStatus(mAppInfo.STATUS_COMPLETE);
+            mAppInfo.setStatus(AppInfo.STATUS_COMPLETE);
             File apk = new File(mDownloadDir, mAppInfo.getName() + ".apk");
             if (apk.isFile() && apk.exists()) {
                 String packageName = Utils.getApkFilePackage(getActivity(), apk);
                 mAppInfo.setPackageName(packageName);
                 if (Utils.isAppInstalled(getActivity(), packageName)) {
-                    mAppInfo.setStatus(mAppInfo.STATUS_INSTALLED);
+                    mAppInfo.setStatus(AppInfo.STATUS_INSTALLED);
                 }
             }
 
@@ -187,7 +187,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
 
         @Override
         public void onDownloadPaused() {
-            mAppInfo.setStatus(mAppInfo.STATUS_PAUSED);
+            mAppInfo.setStatus(AppInfo.STATUS_PAUSED);
             if (isCurrentListViewItemVisible(mPosition)) {
                 RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
                 holder.tvStatus.setText(mAppInfo.getStatusText());
@@ -197,7 +197,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
 
         @Override
         public void onDownloadCanceled() {
-            mAppInfo.setStatus(mAppInfo.STATUS_NOT_DOWNLOAD);
+            mAppInfo.setStatus(AppInfo.STATUS_NOT_DOWNLOAD);
             mAppInfo.setDownloadPerSize("");
             if (isCurrentListViewItemVisible(mPosition)) {
                 RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
@@ -209,7 +209,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
 
         @Override
         public void onFailed(DownloadException e) {
-            mAppInfo.setStatus(mAppInfo.STATUS_DOWNLOAD_ERROR);
+            mAppInfo.setStatus(AppInfo.STATUS_DOWNLOAD_ERROR);
             mAppInfo.setDownloadPerSize("");
             if (isCurrentListViewItemVisible(mPosition)) {
                 RecyclerViewAdapter.AppViewHolder holder = getViewHolder(mPosition);
