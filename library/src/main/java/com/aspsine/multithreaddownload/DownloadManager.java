@@ -6,14 +6,13 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import com.aspsine.multithreaddownload.architecture.DownloadResponse;
+import com.aspsine.multithreaddownload.architecture.DownloadStatusDelivery;
 import com.aspsine.multithreaddownload.architecture.Downloader;
 import com.aspsine.multithreaddownload.core.DownloadResponseImpl;
-import com.aspsine.multithreaddownload.architecture.DownloadStatusDelivery;
 import com.aspsine.multithreaddownload.core.DownloadStatusDeliveryImpl;
 import com.aspsine.multithreaddownload.core.DownloaderImpl;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.db.ThreadInfo;
-import com.aspsine.multithreaddownload.util.FileUtils;
 import com.aspsine.multithreaddownload.util.L;
 
 import java.util.LinkedHashMap;
@@ -152,8 +151,9 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
 //
 //    }
 
-    public DownloadInfo getDownloadProgress(String url) {
-        List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(url);
+    public DownloadInfo getDownloadProgress(String tag) {
+        String key = createKey(tag);
+        List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(key);
         DownloadInfo downloadInfo = null;
         if (!threadInfos.isEmpty()) {
             int finished = 0;
