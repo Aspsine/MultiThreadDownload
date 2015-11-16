@@ -43,10 +43,6 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     private List<DownloadTask> mDownloadTasks;
 
-    private long mLastTime;
-
-    private long mLastFinished;
-
     public DownloaderImpl(DownloadRequest request, DownloadResponse response, Executor executor, DataBaseManager dbManager, String key, DownloadConfiguration config, OnDownloaderDestroyedListener listener) {
         mRequest = request;
         mResponse = response;
@@ -115,9 +111,6 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     public void onConnected(long time, long length, boolean isAcceptRanges) {
         mStatus = DownloadStatus.STATUS_CONNECTED;
         mResponse.onConnected(time, length, isAcceptRanges);
-
-        mLastTime = System.currentTimeMillis();
-        mLastFinished = 0;
 
         mDownloadInfo.setAcceptRanges(isAcceptRanges);
         mDownloadInfo.setLength(length);
