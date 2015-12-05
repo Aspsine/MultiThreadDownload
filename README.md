@@ -19,55 +19,76 @@ Android Multi-Thread Download library.
 ```Java
 private void initDownloader() {
     DownloadConfiguration configuration = new DownloadConfiguration();
-    // default download dir
-    configuration.setDownloadDir(FileUtils.getDefaultDownloadDir(getApplicationContext()));
-    // max thread num
     configuration.setMaxThreadNum(10);
+    configuration.setThreadNum(3);
     DownloadManager.getInstance().init(getApplicationContext(), configuration);
 }
 ```
 - Step 4: Just use it!
 ```Java
-// download
-// the third paramater dir here is a specical dir for this download
-// if set null it will use default dir you have configed in Step 3;
-DownloadManager.getInstance().download(appInfo.getName(), appInfo.getUrl(), dir, new CallBack() {
+
+// first: build a DownloadRequest:
+final DownloadRequest request = new DownloadRequest.Builder()
+            .setTitle(appInfo.getName() + ".apk")
+            .setUri(appInfo.getUrl())
+            .setFolder(mDownloadDir)
+            .build();
+
+// download:
+// the tag here, you can simply use download uri as your tag;
+DownloadManager.getInstance().download(request, tag, new CallBack() {
+    @Override
+    public void onStarted() {
+        
+    }
 
     @Override
-    public void onDownloadStart() {
+    public void onConnecting() {
+
     }
 
     @Override
     public void onConnected(long total, boolean isRangeSupport) {
+
     }
 
     @Override
     public void onProgress(long finished, long total, int progress) {
+
     }
 
     @Override
-    public void onComplete() {
+    public void onCompleted() {
+
     }
 
     @Override
-    public void onDownloadPause() {
+    public void onDownloadPaused() {
+
     }
 
     @Override
-    public void onDownloadCancel() {
+    public void onDownloadCanceled() {
+
     }
 
     @Override
-    public void onFailure(DownloadException e) {
+    public void onFailed(DownloadException e) {
+
     }
 });
 
 //pause
-DownloadManager.getInstance().pause(appInfo.getUrl());
+DownloadManager.getInstance().pause(tag);
+
+//pause all
+DownloadManager.getInstance().pauseAll();
 
 //cancel
-DownloadManager.getInstance().cancel(appInfo.getUrl());
+DownloadManager.getInstance().cancel(tag);
 
+//cancel all
+DownloadManager.getInstance().cancelAll();
 ```
 
 ### Contributing
