@@ -12,7 +12,29 @@ public class L {
     private static final String TAG = "MultiThreadDownload";
 
     /**
+     * d
+     *
+     * @param tag
+     * @param msg
+     */
+    public static void d(String tag, String msg) {
+        if (Constants.CONFIG.DEBUG) {
+            Log.d(tag, msg);
+        }
+    }
+
+    /**
+     * d
+     *
+     * @param msg
+     */
+    public static void d(String msg) {
+        d(TAG, msg);
+    }
+
+    /**
      * i
+     *
      * @param tag
      * @param msg
      */
@@ -24,7 +46,7 @@ public class L {
 
     /**
      * i
-     * default tag fang
+     *
      * @param msg
      */
     public static void i(String msg) {
@@ -33,6 +55,7 @@ public class L {
 
     /**
      * e
+     *
      * @param tag
      * @param msg
      */
@@ -43,30 +66,23 @@ public class L {
     }
 
     /**
-     * e
-     * default tag fang
+     * w
+     *
      * @param msg
      */
-    public static void e(String msg){
-        e(TAG, msg);
+    public static void w(String msg) {
+        w(TAG, msg);
     }
 
     /**
-     * d
+     * w
+     *
      * @param tag
      * @param msg
      */
-    public static void d(String tag, String msg) {
+    public static void w(String tag, String msg) {
         if (Constants.CONFIG.DEBUG) {
-            Log.e(tag, msg);
+            Log.w(tag, msg);
         }
-    }
-
-    /**
-     * d
-     * @param msg
-     */
-    public static void d(String msg){
-        e(TAG, msg);
     }
 }
