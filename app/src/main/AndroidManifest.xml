@@ -26,10 +26,10 @@
         </activity>
         <activity
             android:name=".ui.activity.AppListActivity"
-            android:label="@string/title_activity_app_detail"></activity>
+            android:label="@string/title_activity_app_detail"/>
         <activity
             android:name=".ui.activity.AppDetailActivity"
-            android:label="@string/title_activity_app_detail"></activity>
+            android:label="@string/title_activity_app_detail"/>
     </application>
 
 </manifest>

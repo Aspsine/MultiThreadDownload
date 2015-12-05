@@ -19,13 +19,13 @@ import java.net.URL;
  */
 public class ConnectTaskImpl implements ConnectTask {
     private final String mUri;
-    private final ConnectTask.OnConnectListener mOnConnectListener;
+    private final OnConnectListener mOnConnectListener;
 
     private volatile int mStatus;
 
     private volatile long mStartTime;
 
-    public ConnectTaskImpl(String uri, ConnectTask.OnConnectListener listener) {
+    public ConnectTaskImpl(String uri, OnConnectListener listener) {
         this.mUri = uri;
         this.mOnConnectListener = listener;
     }
@@ -56,7 +56,7 @@ public class ConnectTaskImpl implements ConnectTask {
 
     @Override
     public void run() {
-        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
         mStatus = DownloadStatus.STATUS_CONNECTING;
         mOnConnectListener.onConnecting();
         try {
@@ -80,9 +80,12 @@ public class ConnectTaskImpl implements ConnectTask {
             httpConnection.setConnectTimeout(Constants.HTTP.CONNECT_TIME_OUT);
             httpConnection.setReadTimeout(Constants.HTTP.READ_TIME_OUT);
             httpConnection.setRequestMethod(Constants.HTTP.GET);
+            httpConnection.setRequestProperty("Range", "bytes=" + 0 + "-");
             final int responseCode = httpConnection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                parseResponse(httpConnection);
+                parseResponse(httpConnection, false);
+            } else if (responseCode == HttpURLConnection.HTTP_PARTIAL) {
+                parseResponse(httpConnection, true);
             } else {
                 throw new DownloadException(DownloadStatus.STATUS_FAILED, "UnSupported response code:" + responseCode);
             }
@@ -97,7 +100,7 @@ public class ConnectTaskImpl implements ConnectTask {
         }
     }
 
-    private void parseResponse(HttpURLConnection httpConnection) throws DownloadException {
+    private void parseResponse(HttpURLConnection httpConnection, boolean isAcceptRanges) throws DownloadException {
 
         final long length;
         String contentLength = httpConnection.getHeaderField("Content-Length");
@@ -105,14 +108,6 @@ public class ConnectTaskImpl implements ConnectTask {
             length = httpConnection.getContentLength();
         } else {
             length = Long.parseLong(contentLength);
-        }
-
-        final boolean isAcceptRanges;
-        String acceptRanges = httpConnection.getHeaderField("Accept-Ranges");
-        if (acceptRanges != null) {
-            isAcceptRanges = acceptRanges.equals("bytes");
-        } else {
-            isAcceptRanges = false;
         }
 
         if (length <= 0) {
