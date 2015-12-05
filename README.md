@@ -1,6 +1,8 @@
 # MultiThreadDownload
 Android Multi-Thread Download library.
 
+Note: The lib hasn't been fully tested and released yet.
+
 ###Demo
 [Download](https://raw.githubusercontent.com/Aspsine/MultiThreadDownload/master/art/demo.apk)
 
