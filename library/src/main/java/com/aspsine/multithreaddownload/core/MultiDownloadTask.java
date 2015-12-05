@@ -4,9 +4,9 @@ package com.aspsine.multithreaddownload.core;
  * Created by Aspsine on 2015/7/20.
  */
 
+import com.aspsine.multithreaddownload.DownloadInfo;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
-import com.aspsine.multithreaddownload.entity.DownloadInfo;
-import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.db.ThreadInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * download thread
  */
-public class MultiDownloadTask extends AbsDownloadTask {
+public class MultiDownloadTask extends DownloadTaskImpl {
 
     private DataBaseManager mDBManager;
 
@@ -28,9 +28,10 @@ public class MultiDownloadTask extends AbsDownloadTask {
         this.mDBManager = dbManager;
     }
 
+
     @Override
     protected void insertIntoDB(ThreadInfo info) {
-        if (!mDBManager.exists(info.getUrl(), info.getId())) {
+        if (!mDBManager.exists(info.getTag(), info.getId())) {
             mDBManager.insert(info);
         }
     }
@@ -41,8 +42,8 @@ public class MultiDownloadTask extends AbsDownloadTask {
     }
 
     @Override
-    protected void updateDBProgress(ThreadInfo info) {
-        mDBManager.update(info.getUrl(), info.getId(), info.getFinished());
+    protected void updateDB(ThreadInfo info) {
+        mDBManager.update(info.getTag(), info.getId(), info.getFinished());
     }
 
     @Override
@@ -55,13 +56,13 @@ public class MultiDownloadTask extends AbsDownloadTask {
     }
 
     @Override
-    protected RandomAccessFile getFile(ThreadInfo threadInfo, DownloadInfo downloadInfo) throws IOException {
-        File file = new File(downloadInfo.getDir(), downloadInfo.getName());
+    protected RandomAccessFile getFile(File dir, String name, long offset) throws IOException {
+        File file = new File(dir, name);
         RandomAccessFile raf = new RandomAccessFile(file, "rwd");
-        long start = threadInfo.getStart() + threadInfo.getFinished();
-        raf.seek(start);
+        raf.seek(offset);
         return raf;
     }
+
 
     @Override
     protected String getTag() {

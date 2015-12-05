@@ -2,8 +2,6 @@ package com.aspsine.multithreaddownload.db;
 
 import android.content.Context;
 
-import com.aspsine.multithreaddownload.entity.ThreadInfo;
-
 import java.util.List;
 
 /**
@@ -28,19 +26,19 @@ public class DataBaseManager {
         mThreadInfoDao.insert(threadInfo);
     }
 
-    public synchronized void delete(String url) {
-        mThreadInfoDao.delete(url);
+    public synchronized void delete(String tag) {
+        mThreadInfoDao.delete(tag);
     }
 
-    public synchronized void update(String url, int threadId, long finished) {
-        mThreadInfoDao.update(url, threadId, finished);
+    public synchronized void update(String tag, int threadId, long finished) {
+        mThreadInfoDao.update(tag, threadId, finished);
     }
 
-    public List<ThreadInfo> getThreadInfos(String url) {
-        return mThreadInfoDao.getThreadInfos(url);
+    public List<ThreadInfo> getThreadInfos(String tag) {
+        return mThreadInfoDao.getThreadInfos(tag);
     }
 
-    public boolean exists(String url, int threadId) {
-        return mThreadInfoDao.exists(url, threadId);
+    public boolean exists(String tag, int threadId) {
+        return mThreadInfoDao.exists(tag, threadId);
     }
 }

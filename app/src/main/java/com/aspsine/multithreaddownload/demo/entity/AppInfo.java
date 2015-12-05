@@ -10,7 +10,7 @@ public class AppInfo implements Serializable {
     public static final int STATUS_CONNECTING = 1;
     public static final int STATUS_CONNECT_ERROR = 2;
     public static final int STATUS_DOWNLOADING = 3;
-    public static final int STATUS_PAUSE = 4;
+    public static final int STATUS_PAUSED = 4;
     public static final int STATUS_DOWNLOAD_ERROR = 5;
     public static final int STATUS_COMPLETE = 6;
     public static final int STATUS_INSTALLED = 7;
@@ -104,7 +104,7 @@ public class AppInfo implements Serializable {
                 return "Connect Error";
             case STATUS_DOWNLOADING:
                 return "Downloading";
-            case STATUS_PAUSE:
+            case STATUS_PAUSED:
                 return "Pause";
             case STATUS_DOWNLOAD_ERROR:
                 return "Download Error";
@@ -127,7 +127,7 @@ public class AppInfo implements Serializable {
                 return "Try Again";
             case STATUS_DOWNLOADING:
                 return "Pause";
-            case STATUS_PAUSE:
+            case STATUS_PAUSED:
                 return "Resume";
             case STATUS_DOWNLOAD_ERROR:
                 return "Try Again";
@@ -143,4 +143,6 @@ public class AppInfo implements Serializable {
     public void setStatus(int status) {
         this.status = status;
     }
+
+
 }

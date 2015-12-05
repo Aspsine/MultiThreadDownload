@@ -1,8 +1,8 @@
 package com.aspsine.multithreaddownload.core;
 
 
-import com.aspsine.multithreaddownload.entity.DownloadInfo;
-import com.aspsine.multithreaddownload.entity.ThreadInfo;
+import com.aspsine.multithreaddownload.DownloadInfo;
+import com.aspsine.multithreaddownload.db.ThreadInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Created by Aspsine on 2015/7/22.
  */
-public class SingleDownloadTask extends AbsDownloadTask {
+public class SingleDownloadTask extends DownloadTaskImpl {
 
     public SingleDownloadTask(DownloadInfo mDownloadInfo, ThreadInfo mThreadInfo, OnDownloadListener mOnDownloadListener) {
         super(mDownloadInfo, mThreadInfo, mOnDownloadListener);
@@ -30,7 +30,7 @@ public class SingleDownloadTask extends AbsDownloadTask {
     }
 
     @Override
-    protected void updateDBProgress(ThreadInfo info) {
+    protected void updateDB(ThreadInfo info) {
         // needn't Override this
     }
 
@@ -41,8 +41,8 @@ public class SingleDownloadTask extends AbsDownloadTask {
     }
 
     @Override
-    protected RandomAccessFile getFile(ThreadInfo threadInfo, DownloadInfo downloadInfo) throws IOException {
-        File file = new File(downloadInfo.getDir(), downloadInfo.getName());
+    protected RandomAccessFile getFile(File dir, String name, long offset) throws IOException {
+        File file = new File(dir, name);
         RandomAccessFile raf = new RandomAccessFile(file, "rwd");
         raf.seek(0);
         return raf;

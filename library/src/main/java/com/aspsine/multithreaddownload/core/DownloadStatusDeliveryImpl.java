@@ -3,7 +3,9 @@ package com.aspsine.multithreaddownload.core;
 import android.os.Handler;
 
 import com.aspsine.multithreaddownload.CallBack;
-import com.aspsine.multithreaddownload.util.L;
+import com.aspsine.multithreaddownload.DownloadException;
+import com.aspsine.multithreaddownload.architecture.DownloadStatus;
+import com.aspsine.multithreaddownload.architecture.DownloadStatusDelivery;
 
 import java.util.concurrent.Executor;
 
@@ -23,50 +25,7 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
     }
 
     @Override
-    public void postStart(DownloadStatus status) {
-        status.setStatus(DownloadStatus.STATUS_START);
-        mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
-    }
-
-    @Override
-    public void postConnected(long length, boolean isRangeSupport, DownloadStatus status) {
-        status.setStatus(DownloadStatus.STATUS_CONNECTED);
-        status.setLength(length);
-        status.setIsRangeSupport(isRangeSupport);
-        mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
-    }
-
-    @Override
-    public void postProgressUpdate(long finished, long total, DownloadStatus status) {
-        status.setStatus(DownloadStatus.STATUS_PROGRESS);
-        status.setLength(total);
-        status.setFinished(finished);
-        mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
-    }
-
-    @Override
-    public void postComplete(DownloadStatus status) {
-        L.i("DownloadStatus", "STATUS_COMPLETE");
-        status.setStatus(DownloadStatus.STATUS_COMPLETE);
-        mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
-    }
-
-    @Override
-    public void postPause(DownloadStatus status) {
-        status.setStatus(DownloadStatus.STATUS_PAUSE);
-        mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
-    }
-
-    @Override
-    public void postCancel(DownloadStatus status) {
-        status.setStatus(DownloadStatus.STATUS_CANCEL);
-        mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
-    }
-
-    @Override
-    public void postFailure(DownloadException e, DownloadStatus status) {
-        status.setStatus(DownloadStatus.STATUS_FAILURE);
-        status.setException(e);
+    public void post(DownloadStatus status) {
         mDownloadStatusPoster.execute(new DownloadStatusDeliveryRunnable(status));
     }
 
@@ -82,33 +41,28 @@ public class DownloadStatusDeliveryImpl implements DownloadStatusDelivery {
         @Override
         public void run() {
             switch (mDownloadStatus.getStatus()) {
-                case DownloadStatus.STATUS_START:
-                    mCallBack.onDownloadStart();
+                case DownloadStatus.STATUS_CONNECTING:
+                    mCallBack.onConnecting();
                     break;
                 case DownloadStatus.STATUS_CONNECTED:
-                    mCallBack.onConnected(mDownloadStatus.getLength(), mDownloadStatus.isRangeSupport());
+                    mCallBack.onConnected(mDownloadStatus.getLength(), mDownloadStatus.isAcceptRanges());
                     break;
                 case DownloadStatus.STATUS_PROGRESS:
-                    final long finished = mDownloadStatus.getFinished();
-                    final long length = mDownloadStatus.getLength();
-                    final int percent = (int) (finished * 100 / length);
-                    mCallBack.onProgress(finished, length, percent);
+                    mCallBack.onProgress(mDownloadStatus.getFinished(), mDownloadStatus.getLength(), mDownloadStatus.getPercent());
                     break;
-                case DownloadStatus.STATUS_COMPLETE:
-                    mCallBack.onComplete();
+                case DownloadStatus.STATUS_COMPLETED:
+                    mCallBack.onCompleted();
                     break;
-                case DownloadStatus.STATUS_PAUSE:
-                    mCallBack.onDownloadPause();
+                case DownloadStatus.STATUS_PAUSED:
+                    mCallBack.onDownloadPaused();
                     break;
-                case DownloadStatus.STATUS_CANCEL:
-                    mCallBack.onDownloadCancel();
+                case DownloadStatus.STATUS_CANCELED:
+                    mCallBack.onDownloadCanceled();
                     break;
-                case DownloadStatus.STATUS_FAILURE:
-                    mCallBack.onFailure(mDownloadStatus.getException());
+                case DownloadStatus.STATUS_FAILED:
+                    mCallBack.onFailed((DownloadException) mDownloadStatus.getException());
                     break;
             }
         }
     }
-
-
 }

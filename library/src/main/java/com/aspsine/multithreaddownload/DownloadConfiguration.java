@@ -1,41 +1,31 @@
 package com.aspsine.multithreaddownload;
 
-import android.content.Context;
-
-import com.aspsine.multithreaddownload.util.FileUtils;
-
-import java.io.File;
-
 /**
  * Created by Aspsine on 2015/7/14.
  */
 public class DownloadConfiguration {
+
+    public static final int DEFAULT_MAX_THREAD_NUMBER = 10;
+
+    public static final int DEFAULT_THREAD_NUMBER = 1;
+
     /**
-     * dir of the download file will be stored
+     * thread number in the pool
      */
-    public File downloadDir;
+    private int maxThreadNum;
+
     /**
-     * the max num of thread that  create
+     * thread number for each download
      */
-    public int maxThreadNum;
+    private int threadNum;
+
 
     /**
      * init with default value
      */
     public DownloadConfiguration() {
-    }
-
-    public DownloadConfiguration(File downloadDir, int maxThreadNum) {
-        this.downloadDir = downloadDir;
-        this.maxThreadNum = maxThreadNum;
-    }
-
-    public File getDownloadDir() {
-        return downloadDir;
-    }
-
-    public void setDownloadDir(File downloadDir) {
-        this.downloadDir = downloadDir;
+        maxThreadNum = DEFAULT_MAX_THREAD_NUMBER;
+        threadNum = DEFAULT_THREAD_NUMBER;
     }
 
     public int getMaxThreadNum() {
@@ -44,5 +34,13 @@ public class DownloadConfiguration {
 
     public void setMaxThreadNum(int maxThreadNum) {
         this.maxThreadNum = maxThreadNum;
+    }
+
+    public int getThreadNum() {
+        return threadNum;
+    }
+
+    public void setThreadNum(int threadNum) {
+        this.threadNum = threadNum;
     }
 }
