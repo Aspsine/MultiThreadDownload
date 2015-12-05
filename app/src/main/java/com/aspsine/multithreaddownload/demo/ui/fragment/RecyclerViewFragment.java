@@ -75,6 +75,12 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
         mAdapter.setData(mAppInfos);
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        DownloadManager.getInstance().pauseAll();
+    }
+
     private static final DecimalFormat DF = new DecimalFormat("0.00");
 
     /**
