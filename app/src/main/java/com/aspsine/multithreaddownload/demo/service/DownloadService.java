@@ -239,7 +239,12 @@ public class DownloadService extends Service {
             mBuilder.setContentText("Download Canceled");
             mBuilder.setTicker(mAppInfo.getName() + " download Canceled");
             updateNotification();
-            mNotificationManager.cancel(mPosition);
+            mNotificationManager.cancel(mPosition + 1000);
+
+            mAppInfo.setStatus(AppInfo.STATUS_NOT_DOWNLOAD);
+            mAppInfo.setProgress(0);
+            mAppInfo.setDownloadPerSize("");
+            sendBroadCast(mAppInfo);
         }
 
         @Override
