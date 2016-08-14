@@ -8,9 +8,6 @@ import java.util.List;
 public class ListUtils {
 
     public static final boolean isEmpty(List list) {
-        if (list != null && list.size() > 0) {
-            return false;
-        }
-        return true;
+        return !(list != null && list.size() > 0);
     }
 }

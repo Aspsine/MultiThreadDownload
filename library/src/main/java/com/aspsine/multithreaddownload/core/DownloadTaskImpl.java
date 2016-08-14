@@ -192,21 +192,15 @@ public abstract class DownloadTaskImpl implements DownloadTask {
     }
 
     private void transferData(InputStream inputStream, RandomAccessFile raf) throws DownloadException {
-        final byte[] buffer = new byte[1024 * 16];
+        final byte[] buffer = new byte[1024 * 8];
         while (true) {
             checkPausedOrCanceled();
             int len = -1;
             try {
                 len = inputStream.read(buffer);
-            } catch (IOException e) {
-                throw new DownloadException(DownloadStatus.STATUS_FAILED, "Http inputStream read error", e);
-            }
-
-            if (len == -1) {
-                break;
-            }
-
-            try {
+                if (len == -1) {
+                    break;
+                }
                 raf.write(buffer, 0, len);
                 mThreadInfo.setFinished(mThreadInfo.getFinished() + len);
                 synchronized (mOnDownloadListener) {
@@ -214,11 +208,11 @@ public abstract class DownloadTaskImpl implements DownloadTask {
                     mOnDownloadListener.onDownloadProgress(mDownloadInfo.getFinished(), mDownloadInfo.getLength());
                 }
             } catch (IOException e) {
-                throw new DownloadException(DownloadStatus.STATUS_FAILED, "Fail write buffer to file", e);
+                updateDB(mThreadInfo);
+                throw new DownloadException(DownloadStatus.STATUS_FAILED, e);
             }
         }
     }
-
 
     private void checkPausedOrCanceled() throws DownloadException {
         if (mCommend == DownloadStatus.STATUS_CANCELED) {

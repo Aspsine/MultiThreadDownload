@@ -15,6 +15,7 @@ import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.db.ThreadInfo;
 import com.aspsine.multithreaddownload.util.L;
 
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,9 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
     public static DownloadManager getInstance() {
         if (sDownloadManager == null) {
             synchronized (DownloadManager.class) {
-                sDownloadManager = new DownloadManager();
+                if (sDownloadManager == null) {
+                    sDownloadManager = new DownloadManager();
+                }
             }
         }
         return sDownloadManager;
@@ -134,24 +137,29 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
         }
     }
 
-//    public void delete(String tag) {
-//        String key = createKey(tag);
-//        if (mDownloaderMap.containsKey(key)) {
-//            Downloader downloader = mDownloaderMap.get(key);
-//            downloader.cancel();
-//        } else {
-//            List<DownloadInfo> infoList = mDBManager.getDownloadInfos(tag);
-//            for (DownloadInfo info : infoList) {
-//                FileUtils.delete(info.getD);
-//            }
-//        }
-//    }
-//
-//    public void deleteAll() {
-//
-//    }
+    public void delete(String tag) {
+        DownloadInfo downloadInfo = getDownloadInfo(tag);
+        if (downloadInfo != null) {
+            File file = new File(downloadInfo.getDir(), downloadInfo.getName());
+            if (file.exists() && file.isFile()) {
+                file.delete();
+            }
+        }
+        mDBManager.delete(tag);
+    }
 
-    public DownloadInfo getDownloadProgress(String tag) {
+    public boolean isRunning(String tag) {
+        String key = createKey(tag);
+        if (mDownloaderMap.containsKey(key)) {
+            Downloader downloader = mDownloaderMap.get(key);
+            if (downloader != null) {
+                return downloader.isRunning();
+            }
+        }
+        return false;
+    }
+
+    public DownloadInfo getDownloadInfo(String tag) {
         String key = createKey(tag);
         List<ThreadInfo> threadInfos = mDBManager.getThreadInfos(key);
         DownloadInfo downloadInfo = null;

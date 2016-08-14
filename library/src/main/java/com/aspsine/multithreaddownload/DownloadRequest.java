@@ -11,7 +11,7 @@ public class DownloadRequest {
 
     private File mFolder;
 
-    private CharSequence mTitle;
+    private CharSequence mName;
 
     private CharSequence mDescription;
 
@@ -20,10 +20,10 @@ public class DownloadRequest {
     private DownloadRequest() {
     }
 
-    private DownloadRequest(String uri, File folder, CharSequence title, CharSequence description, boolean scannable) {
+    private DownloadRequest(String uri, File folder, CharSequence name, CharSequence description, boolean scannable) {
         this.mUri = uri;
         this.mFolder = folder;
-        this.mTitle = title;
+        this.mName = name;
         this.mDescription = description;
         this.mScannable = scannable;
     }
@@ -36,8 +36,8 @@ public class DownloadRequest {
         return mFolder;
     }
 
-    public CharSequence getTitle() {
-        return mTitle;
+    public CharSequence getName() {
+        return mName;
     }
 
     public CharSequence getDescription() {
@@ -54,7 +54,7 @@ public class DownloadRequest {
 
         private File mFolder;
 
-        private CharSequence mTitle;
+        private CharSequence mName;
 
         private CharSequence mDescription;
 
@@ -73,8 +73,8 @@ public class DownloadRequest {
             return this;
         }
 
-        public Builder setTitle(CharSequence title) {
-            this.mTitle = title;
+        public Builder setName(CharSequence name) {
+            this.mName = name;
             return this;
         }
 
@@ -89,7 +89,7 @@ public class DownloadRequest {
         }
 
         public DownloadRequest build() {
-            DownloadRequest request = new DownloadRequest(mUri, mFolder, mTitle, mDescription, mScannable);
+            DownloadRequest request = new DownloadRequest(mUri, mFolder, mName, mDescription, mScannable);
             return request;
         }
     }
