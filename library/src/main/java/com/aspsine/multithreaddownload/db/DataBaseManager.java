@@ -38,6 +38,10 @@ public class DataBaseManager {
         return mThreadInfoDao.getThreadInfos(tag);
     }
 
+    public List<ThreadInfo> getThreadInfos(){
+        return mThreadInfoDao.getThreadInfos();
+    }
+
     public boolean exists(String tag, int threadId) {
         return mThreadInfoDao.exists(tag, threadId);
     }

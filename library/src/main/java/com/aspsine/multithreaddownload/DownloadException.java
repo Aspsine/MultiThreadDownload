@@ -13,22 +13,29 @@ public class DownloadException extends Exception {
 
     public DownloadException(String detailMessage) {
         super(detailMessage);
-        errorMessage = detailMessage;
+        this.errorMessage = detailMessage;
     }
 
     public DownloadException(int errorCode, String detailMessage) {
-        this(detailMessage);
+        super(detailMessage);
+        this.errorCode = errorCode;
+        this.errorMessage = detailMessage;
+    }
+
+    public DownloadException(int errorCode, Throwable throwable) {
+        super(throwable);
         this.errorCode = errorCode;
     }
 
     public DownloadException(String detailMessage, Throwable throwable) {
         super(detailMessage, throwable);
-        errorMessage = detailMessage;
+        this.errorMessage = detailMessage;
     }
 
     public DownloadException(int errorCode, String detailMessage, Throwable throwable) {
-        this(detailMessage, throwable);
+        super(detailMessage, throwable);
         this.errorCode = errorCode;
+        this.errorMessage = detailMessage;
     }
 
     public DownloadException(Throwable throwable) {

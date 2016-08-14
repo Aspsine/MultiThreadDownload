@@ -5,7 +5,7 @@ package com.aspsine.multithreaddownload.architecture;
  */
 public interface Downloader {
 
-    public interface OnDownloaderDestroyedListener {
+    interface OnDownloaderDestroyedListener {
         void onDestroyed(String key, Downloader downloader);
     }
 

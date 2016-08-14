@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -75,6 +76,11 @@ public class DownloadService extends Service {
         context.startService(intent);
     }
 
+    public static void destory(Context context) {
+        Intent intent = new Intent(context, DownloadService.class);
+        context.stopService(intent);
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -110,7 +116,7 @@ public class DownloadService extends Service {
 
     private void download(final int position, final AppInfo appInfo, String tag) {
         final DownloadRequest request = new DownloadRequest.Builder()
-                .setTitle(appInfo.getName() + ".apk")
+                .setName(appInfo.getName() + ".apk")
                 .setUri(appInfo.getUrl())
                 .setFolder(mDownloadDir)
                 .build();
@@ -227,6 +233,7 @@ public class DownloadService extends Service {
             L.i(TAG, "onDownloadPaused()");
             mBuilder.setContentText("Download Paused");
             mBuilder.setTicker(mAppInfo.getName() + " download Paused");
+            mBuilder.setProgress(100, mAppInfo.getProgress(), false);
             updateNotification();
 
             mAppInfo.setStatus(AppInfo.STATUS_PAUSED);
@@ -239,7 +246,19 @@ public class DownloadService extends Service {
             mBuilder.setContentText("Download Canceled");
             mBuilder.setTicker(mAppInfo.getName() + " download Canceled");
             updateNotification();
-            mNotificationManager.cancel(mPosition);
+
+            //there is 1000 ms memory leak, shouldn't be a problem
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mNotificationManager.cancel(mPosition + 1000);
+                }
+            }, 1000);
+
+            mAppInfo.setStatus(AppInfo.STATUS_NOT_DOWNLOAD);
+            mAppInfo.setProgress(0);
+            mAppInfo.setDownloadPerSize("");
+            sendBroadCast(mAppInfo);
         }
 
         @Override
