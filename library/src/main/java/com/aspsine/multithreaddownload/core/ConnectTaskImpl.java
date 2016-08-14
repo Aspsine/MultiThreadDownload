@@ -30,6 +30,11 @@ public class ConnectTaskImpl implements ConnectTask {
         this.mOnConnectListener = listener;
     }
 
+    @Override
+    public void pause() {
+        mStatus = DownloadStatus.STATUS_PAUSED;
+    }
+
     public void cancel() {
         mStatus = DownloadStatus.STATUS_CANCELED;
     }
@@ -42,6 +47,11 @@ public class ConnectTaskImpl implements ConnectTask {
     @Override
     public boolean isConnected() {
         return mStatus == DownloadStatus.STATUS_CONNECTED;
+    }
+
+    @Override
+    public boolean isPaused() {
+        return mStatus == DownloadStatus.STATUS_PAUSED;
     }
 
     @Override
@@ -114,7 +124,7 @@ public class ConnectTaskImpl implements ConnectTask {
             throw new DownloadException(DownloadStatus.STATUS_FAILED, "length <= 0");
         }
 
-        checkCanceled();
+        checkCanceledOrPaused();
 
         //Successful
         mStatus = DownloadStatus.STATUS_CONNECTED;
@@ -122,10 +132,13 @@ public class ConnectTaskImpl implements ConnectTask {
         mOnConnectListener.onConnected(timeDelta, length, isAcceptRanges);
     }
 
-    private void checkCanceled() throws DownloadException {
+    private void checkCanceledOrPaused() throws DownloadException {
         if (isCanceled()) {
             // cancel
-            throw new DownloadException(DownloadStatus.STATUS_CANCELED, "Download paused!");
+            throw new DownloadException(DownloadStatus.STATUS_CANCELED, "Connection Canceled!");
+        } else if (isPaused()) {
+            // paused
+            throw new DownloadException(DownloadStatus.STATUS_PAUSED, "Connection Paused!");
         }
     }
 
@@ -135,6 +148,12 @@ public class ConnectTaskImpl implements ConnectTask {
                 synchronized (mOnConnectListener) {
                     mStatus = DownloadStatus.STATUS_FAILED;
                     mOnConnectListener.onConnectFailed(e);
+                }
+                break;
+            case DownloadStatus.STATUS_PAUSED:
+                synchronized (mOnConnectListener) {
+                    mStatus = DownloadStatus.STATUS_PAUSED;
+                    mOnConnectListener.onConnectPaused();
                 }
                 break;
             case DownloadStatus.STATUS_CANCELED:

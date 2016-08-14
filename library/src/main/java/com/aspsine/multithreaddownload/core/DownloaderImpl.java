@@ -12,6 +12,7 @@ import com.aspsine.multithreaddownload.architecture.Downloader;
 import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.db.ThreadInfo;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -56,7 +57,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     }
 
     private void init() {
-        mDownloadInfo = new DownloadInfo(mRequest.getTitle().toString(), mRequest.getUri(), mRequest.getFolder());
+        mDownloadInfo = new DownloadInfo(mRequest.getName().toString(), mRequest.getUri(), mRequest.getFolder());
         mDownloadTasks = new LinkedList<>();
     }
 
@@ -78,10 +79,13 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     @Override
     public void pause() {
         if (mConnectTask != null) {
-            mConnectTask.cancel();
+            mConnectTask.pause();
         }
         for (DownloadTask task : mDownloadTasks) {
             task.pause();
+        }
+        if (mStatus != DownloadStatus.STATUS_PROGRESS) {
+            onDownloadPaused();
         }
     }
 
@@ -92,6 +96,9 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
         }
         for (DownloadTask task : mDownloadTasks) {
             task.cancel();
+        }
+        if (mStatus != DownloadStatus.STATUS_PROGRESS) {
+            onDownloadCanceled();
         }
     }
 
@@ -109,26 +116,46 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     @Override
     public void onConnected(long time, long length, boolean isAcceptRanges) {
-        mStatus = DownloadStatus.STATUS_CONNECTED;
-        mResponse.onConnected(time, length, isAcceptRanges);
+        if (mConnectTask.isCanceled()) {
+            // despite connection is finished, the entire downloader is canceled
+            onConnectCanceled();
+        } else {
+            mStatus = DownloadStatus.STATUS_CONNECTED;
+            mResponse.onConnected(time, length, isAcceptRanges);
 
-        mDownloadInfo.setAcceptRanges(isAcceptRanges);
-        mDownloadInfo.setLength(length);
-        download(length, isAcceptRanges);
+            mDownloadInfo.setAcceptRanges(isAcceptRanges);
+            mDownloadInfo.setLength(length);
+            download(length, isAcceptRanges);
+        }
     }
 
     @Override
-    public void onConnectFailed(DownloadException de) {
-        mStatus = DownloadStatus.STATUS_FAILED;
-        mResponse.onConnectFailed(de);
-        onDestroy();
+    public void onConnectPaused() {
+        onDownloadPaused();
     }
 
     @Override
     public void onConnectCanceled() {
+        deleteFromDB();
+        deleteFile();
         mStatus = DownloadStatus.STATUS_CANCELED;
         mResponse.onConnectCanceled();
         onDestroy();
+    }
+
+    @Override
+    public void onConnectFailed(DownloadException de) {
+        if (mConnectTask.isCanceled()) {
+            // despite connection is failed, the entire downloader is canceled
+            onConnectCanceled();
+        } else if (mConnectTask.isPaused()) {
+            // despite connection is failed, the entire downloader is paused
+            onDownloadPaused();
+        } else {
+            mStatus = DownloadStatus.STATUS_FAILED;
+            mResponse.onConnectFailed(de);
+            onDestroy();
+        }
     }
 
     @Override
@@ -137,7 +164,6 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     @Override
     public void onDownloadProgress(long finished, long length) {
-        mStatus = DownloadStatus.STATUS_PROGRESS;
         // calculate percent
         final int percent = (int) (finished * 100 / length);
         mResponse.onDownloadProgress(finished, length, percent);
@@ -166,6 +192,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     public void onDownloadCanceled() {
         if (isAllCanceled()) {
             deleteFromDB();
+            deleteFile();
             mStatus = DownloadStatus.STATUS_CANCELED;
             mResponse.onDownloadCanceled();
             onDestroy();
@@ -187,6 +214,7 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
     }
 
     private void download(long length, boolean acceptRanges) {
+        mStatus = DownloadStatus.STATUS_PROGRESS;
         initDownloadTasks(length, acceptRanges);
         // start tasks
         for (DownloadTask downloadTask : mDownloadTasks) {
@@ -289,5 +317,12 @@ public class DownloaderImpl implements Downloader, ConnectTask.OnConnectListener
 
     private void deleteFromDB() {
         mDBManager.delete(mTag);
+    }
+
+    private void deleteFile() {
+        File file = new File(mDownloadInfo.getDir(), mDownloadInfo.getName());
+        if (file.exists() && file.isFile()) {
+            file.delete();
+        }
     }
 }

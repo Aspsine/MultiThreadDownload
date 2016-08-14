@@ -49,7 +49,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
         mAdapter.setOnItemClickListener(this);
         mAppInfos = DataSource.getInstance().getData();
         for (AppInfo info : mAppInfos) {
-            DownloadInfo downloadInfo = DownloadManager.getInstance().getDownloadProgress(info.getUrl());
+            DownloadInfo downloadInfo = DownloadManager.getInstance().getDownloadInfo(info.getUrl());
             if (downloadInfo != null) {
                 info.setProgress(downloadInfo.getProgress());
                 info.setDownloadPerSize(getDownloadPerSize(downloadInfo.getFinished(), downloadInfo.getLength()));
@@ -103,7 +103,7 @@ public class RecyclerViewFragment extends Fragment implements OnItemClickListene
 
     private void download(final int position, String tag, final AppInfo appInfo) {
         final DownloadRequest request = new DownloadRequest.Builder()
-                .setTitle(appInfo.getName() + ".apk")
+                .setName(appInfo.getName() + ".apk")
                 .setUri(appInfo.getUrl())
                 .setFolder(mDownloadDir)
                 .build();

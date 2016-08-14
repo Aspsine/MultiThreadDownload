@@ -73,6 +73,27 @@ public class ThreadInfoDao extends AbstractDao<ThreadInfo> {
         return list;
     }
 
+    public List<ThreadInfo> getThreadInfos() {
+        List<ThreadInfo> list = new ArrayList<ThreadInfo>();
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("select * from "
+                        + TABLE_NAME
+                , null);
+        while (cursor.moveToNext()) {
+            ThreadInfo info = new ThreadInfo();
+            info.setId(cursor.getInt(cursor.getColumnIndex("id")));
+            info.setTag(cursor.getString(cursor.getColumnIndex("tag")));
+            info.setUri(cursor.getString(cursor.getColumnIndex("uri")));
+            info.setEnd(cursor.getLong(cursor.getColumnIndex("end")));
+            info.setStart(cursor.getLong(cursor.getColumnIndex("start")));
+            info.setFinished(cursor.getLong(cursor.getColumnIndex("finished")));
+            list.add(info);
+        }
+        cursor.close();
+        return list;
+    }
+
     public boolean exists(String tag, int threadId) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("select * from "
