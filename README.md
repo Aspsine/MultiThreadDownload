@@ -33,7 +33,7 @@ private void initDownloader() {
 
 // first: build a DownloadRequest:
 final DownloadRequest request = new DownloadRequest.Builder()
-            .setTitle(appInfo.getName() + ".apk")
+            .setName(appInfo.getName() + ".apk")
             .setUri(appInfo.getUrl())
             .setFolder(mDownloadDir)
             .build();
@@ -93,6 +93,9 @@ DownloadManager.getInstance().cancel(tag);
 
 //cancel all
 DownloadManager.getInstance().cancelAll();
+
+//delete
+DownloadManager.getInstance().delete(tag);
 ```
 
 ### Contributing
