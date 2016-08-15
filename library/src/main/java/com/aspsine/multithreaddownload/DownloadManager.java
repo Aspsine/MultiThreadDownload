@@ -138,14 +138,8 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
     }
 
     public void delete(String tag) {
-        DownloadInfo downloadInfo = getDownloadInfo(tag);
-        if (downloadInfo != null) {
-            File file = new File(downloadInfo.getDir(), downloadInfo.getName());
-            if (file.exists() && file.isFile()) {
-                file.delete();
-            }
-        }
-        mDBManager.delete(tag);
+        String key = createKey(tag);
+        mDBManager.delete(key);
     }
 
     public boolean isRunning(String tag) {
