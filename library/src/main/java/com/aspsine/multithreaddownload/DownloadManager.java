@@ -15,7 +15,6 @@ import com.aspsine.multithreaddownload.db.DataBaseManager;
 import com.aspsine.multithreaddownload.db.ThreadInfo;
 import com.aspsine.multithreaddownload.util.L;
 
-import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +42,8 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
     private ExecutorService mExecutorService;
 
     private DownloadStatusDelivery mDelivery;
+
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     public static DownloadManager getInstance() {
         if (sDownloadManager == null) {
@@ -73,14 +74,19 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
         mConfig = config;
         mDBManager = DataBaseManager.getInstance(context);
         mExecutorService = Executors.newFixedThreadPool(mConfig.getMaxThreadNum());
-        mDelivery = new DownloadStatusDeliveryImpl(new Handler(Looper.getMainLooper()));
+        mDelivery = new DownloadStatusDeliveryImpl(mHandler);
     }
 
     @Override
-    public void onDestroyed(String key, Downloader downloader) {
-        if (mDownloaderMap.containsKey(key)) {
-            mDownloaderMap.remove(key);
-        }
+    public void onDestroyed(final String key, Downloader downloader) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mDownloaderMap.containsKey(key)) {
+                    mDownloaderMap.remove(key);
+                }
+            }
+        });
     }
 
     public void download(DownloadRequest request, String tag, CallBack callBack) {
@@ -118,23 +124,33 @@ public class DownloadManager implements Downloader.OnDownloaderDestroyedListener
     }
 
     public void pauseAll() {
-        for (Downloader downloader : mDownloaderMap.values()) {
-            if (downloader != null) {
-                if (downloader.isRunning()) {
-                    downloader.pause();
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                for (Downloader downloader : mDownloaderMap.values()) {
+                    if (downloader != null) {
+                        if (downloader.isRunning()) {
+                            downloader.pause();
+                        }
+                    }
                 }
             }
-        }
+        });
     }
 
     public void cancelAll() {
-        for (Downloader downloader : mDownloaderMap.values()) {
-            if (downloader != null) {
-                if (downloader.isRunning()) {
-                    downloader.cancel();
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                for (Downloader downloader : mDownloaderMap.values()) {
+                    if (downloader != null) {
+                        if (downloader.isRunning()) {
+                            downloader.cancel();
+                        }
+                    }
                 }
             }
-        }
+        });
     }
 
     public void delete(String tag) {
