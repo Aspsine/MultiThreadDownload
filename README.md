@@ -1,17 +1,17 @@
 # MultiThreadDownload
 Android Multi-Thread Download library.
 
-###Note
+### Note
 The lib hasn't been fully tested and released yet. If you find some bugs, welcome to post [issues](https://github.com/Aspsine/MultiThreadDownload/issues) to me.
 
 
-###Demo
+### Demo
 [Download](https://raw.githubusercontent.com/Aspsine/MultiThreadDownload/master/art/demo.apk)
 
-###Demo ScreenShot
+### Demo ScreenShot
 ![Demo](https://github.com/Aspsine/MultiThreadDownload/raw/master/art/pic1.png)
 
-###How to use
+### How to use
 - Step 1: Add permission in 'AndroidManifest.xml'
 ```Xml
 <uses-permission android:name="android.permission.INTERNET" />
